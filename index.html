@@ -1,0 +1,3008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrustTray | Good Food. Greater Impact. (BridgeKey & MST Blockchain)</title>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Ethers.js library for Web3 & Smart Contract Interaction -->
+<script src="./ethers.umd.min.js"></script>
+<script>
+  if (typeof ethers === 'undefined') {
+    document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js"><\/script>');
+  }
+</script>
+<script src="./contract-config.js"></script>
+
+<style>
+:root {
+  --color-primary:#174D36;
+  --color-secondary:#2F855A;
+  --color-background:#F7F7EF;
+  --color-surface:#FFFFFF;
+  --color-text:#26332C;
+  --color-accent:#D97706;
+  --green:var(--color-primary);
+  --green2:var(--color-secondary);
+  --dark:var(--color-text);
+  --cream:var(--color-background);
+  --sage:#E6EFE8;
+  --muted:#59685F;
+  --line:#D4DED5;
+  --shadow:0 8px 25px rgba(23,77,54,.09);
+  --bridgekey-purple:var(--color-secondary);
+  --bridgekey-light:#E6EFE8;
+  --amber:var(--color-accent);
+  --red:#dc2626;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--color-background);color:var(--color-text);font-family:"DM Sans",sans-serif;overflow-x:hidden}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid var(--color-secondary);outline-offset:2px}
+
+header{background:white;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100;padding:12px 4%;display:flex;align-items:center;justify-content:space-between;gap:15px;box-shadow:0 3px 16px #183f2b08}
+.brand{display:flex;align-items:center;gap:10px;min-width:180px;cursor:pointer}
+.brand .logo{display:block;flex:0 0 64px;width:64px;height:auto;object-fit:contain}
+.brand strong{font:800 22px Manrope,sans-serif;display:block;letter-spacing:-0.8px}
+.brand small{font-size:11px;color:var(--muted)}
+nav{display:flex;gap:5px;align-items:center}
+.navbtn{border:0;background:transparent;padding:11px 12px;border-radius:12px;color:#315646;font-size:13px;white-space:nowrap;transition:0.15s}
+.navbtn:hover,.navbtn.active{background:#e9f4e8;color:var(--green)}
+.navbtn.active{box-shadow:inset 0 -3px var(--green);font-weight:700}
+.cart-count{background:var(--green);color:white;border-radius:20px;padding:2px 7px;font-size:11px}
+#menu{display:none}
+
+/* Header BridgeKey Wallet Button */
+.header-wallet-actions{display:flex;align-items:center;gap:10px}
+.wallet-btn{display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#1f3d2b,#136943);color:white;padding:9px 16px;border-radius:12px;border:1px solid #1f774e;font-size:12px;font-weight:700;transition:all .2s;white-space:nowrap}
+.wallet-btn:hover{background:linear-gradient(135deg,#155837,#0d7f4e);transform:translateY(-1px);box-shadow:0 4px 14px rgba(23,107,69,0.25)}
+.wallet-btn.connected{background:#eef8f1;color:#125232;border:1px solid #c2e2cc}
+.wallet-btn.connecting{opacity:0.75;cursor:wait;transform:none}
+.wallet-icon{font-size:15px}
+.wallet-status-dot{width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block}
+.wallet-status-dot.disconnected{background:#9ca3af}
+.wallet-status-dot.warning{background:#f59e0b}
+.wallet-badge{font-size:10px;padding:2px 6px;border-radius:10px;background:#def7ec;color:#03543f;font-weight:700;margin-left:4px}
+.wallet-badge.unverified{background:#fef3c7;color:#92400e}
+.wallet-badge.wrong-net{background:#fee2e2;color:#991b1b}
+
+/* MetaMask Alert Banner */
+.metamask-warning-banner{display:none;background:#fef2f2;border-bottom:2px solid #ef4444;color:#991b1b;padding:12px 4%;font-size:13px;align-items:center;justify-content:space-between;gap:15px}
+.metamask-warning-banner.show{display:flex}
+.metamask-warning-banner strong{font-weight:800}
+.metamask-warning-banner .btn-close{background:none;border:0;color:#991b1b;font-size:18px;cursor:pointer}
+
+main{max-width:1600px;margin:auto;padding:24px 4% 55px}
+.page{display:none}
+.page.active{display:block;animation:fade .2s ease}
+@keyframes fade{from{opacity:.5;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.hero{display:grid;grid-template-columns:1.1fr .9fr;align-items:center;min-height:300px;padding:32px;border-radius:24px;background:linear-gradient(115deg,#f1f7e9,#e1efdc);overflow:hidden}
+.eyebrow{color:var(--green);font-size:11px;letter-spacing:1.5px;font-weight:800}
+h1,h2,h3{font-family:Manrope,sans-serif}
+.hero h1{font-size:clamp(35px,4vw,55px);line-height:1.08;letter-spacing:-2px;margin:13px 0}
+.hero h1 em{color:var(--green);font-style:normal}
+.hero p{color:#5c7768}
+.search{display:flex;gap:8px;background:white;border:1px solid var(--line);padding:6px 7px 6px 14px;border-radius:14px;max-width:620px;margin:20px 0}
+.search input{border:0;outline:0;min-width:0;flex:1;padding:8px}
+.btn{border:0;border-radius:11px;padding:11px 16px;font-weight:700;transition:.2s}
+.btn:hover{transform:translateY(-1px)}
+.btn:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+.primary{background:linear-gradient(120deg,var(--green),var(--green2));color:white}
+.outline{border:1px solid var(--line);background:white;color:var(--green)}
+.btn-danger{background:#dc2626;color:white}
+.btn-sm{padding:7px 12px;font-size:11px;border-radius:8px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
+.chip{border:1px solid #d2e3d5;background:white;color:#365b4b;border-radius:25px;padding:9px 12px;font-size:12px}
+.chip.selected,.chip:hover{background:var(--green);color:white}
+.hero-art{position:relative;text-align:center}
+.hero-art img{width:76%;height:245px;object-fit:cover;border-radius:48% 48% 20px 20px;box-shadow:var(--shadow);transform:rotate(2deg)}
+.hero-note{position:absolute;right:0;bottom:0;background:#fff9d8;padding:14px;border-radius:15px;color:#47724a;transform:rotate(4deg);font:700 15px Manrope}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);margin:18px 0 25px;background:#f0f5e9;border-radius:17px;padding:18px 8px}
+.stat{display:flex;align-items:center;justify-content:center;gap:12px;border-right:1px solid #cbdcc9}
+.stat:last-child{border:0}
+.stat-icon{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#dcebd4;font-size:22px}
+.stat strong{font:800 20px Manrope;display:block}
+.stat small{font-size:11px;color:var(--muted)}
+
+.layout{display:grid;grid-template-columns:225px minmax(0,1fr);gap:23px}
+.filters{align-self:start;border:1px solid var(--line);border-radius:15px;padding:17px;background:#fff9}
+.filters h3{font-size:14px;margin:3px 0 12px}
+.filters hr{border:0;border-top:1px solid var(--line);margin:16px 0}
+.filterbtn{display:block;width:100%;text-align:left;padding:10px;border:0;background:transparent;border-radius:9px;color:#49685a;font-size:13px}
+.filterbtn:hover,.filterbtn.active{background:#dff0e2;color:var(--green);font-weight:700}
+.check{display:flex;gap:9px;align-items:center;margin:12px 0;font-size:13px;color:#577164}
+.check input{accent-color:var(--green)}
+.field{width:100%;border:1px solid var(--line);padding:11px;border-radius:9px;background:white}
+.results-head{display:flex;justify-content:space-between;align-items:end;margin-bottom:16px;gap:12px}
+.results-head h2{font-size:25px;margin:6px 0 0}
+.results-head select{border:1px solid var(--line);padding:10px;border-radius:9px;background:white}
+.food-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.food-card{background:white;border:1px solid #e1e9e1;border-radius:15px;overflow:hidden;box-shadow:0 4px 13px #234b3008;transition:.2s;min-width:0;display:flex;flex-direction:column}
+.food-card:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+.food-img{height:155px;position:relative;background:#e4eddf}
+.food-img img{width:100%;height:100%;object-fit:cover}
+.badge{position:absolute;top:10px;left:10px;padding:6px 10px;border-radius:20px;background:#168650;color:white;font-size:10px;font-weight:800}
+.badge.onchain{right:10px;left:auto;background:#4f46e5}
+.badge.expiring{background:#f3a23b;color:#492b06}
+.food-body{padding:13px;display:flex;flex-direction:column;flex:1}
+.food-title{display:flex;justify-content:space-between;gap:5px;align-items:start}
+.food-title h3{font-size:15px;margin:0}
+.diet{font-size:10px;background:#e7f4e8;color:#23744b;padding:5px 7px;border-radius:20px;white-space:nowrap}
+.diet.nonveg{background:#fff0ec;color:#ba4b3b}
+.quantity{font-size:12px;color:#4d6659;margin:10px 0}
+.meta{display:grid;gap:7px;color:#60766b;font-size:11px;margin-bottom:13px;overflow-wrap:anywhere}
+.reserve{width:100%;font-size:12px;padding:10px;margin-top:auto}
+.muted{color:#8a9b91;font-size:13px;font-weight:500}
+.note{font-size:11px;line-height:1.6;color:#7b8d83}
+.empty{text-align:center;padding:35px;background:white;border:1px dashed var(--line);border-radius:15px}
+.hidden{display:none!important}
+
+.page-heading{margin:15px 0 27px}
+.page-heading h1{font-size:42px;letter-spacing:-1.5px;margin:9px 0}
+.page-heading p{color:var(--muted)}
+.panel{background:white;border:1px solid var(--line);border-radius:17px;padding:24px;box-shadow:0 6px 20px #214a3007;margin-bottom:20px}
+.panel h2{font-size:21px;margin:0 0 20px}
+.form-layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(240px,.8fr);gap:22px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.form-grid label{display:grid;gap:7px;font-size:12px;font-weight:700;color:#486658}
+.form-grid label.full{grid-column:1/-1}
+.form-grid input,.form-grid select,.form-grid textarea{width:100%;min-width:0;border:1px solid var(--line);border-radius:10px;padding:12px;background:#fcfdfb}
+.wide{width:100%;margin-top:20px}
+.impact{background:linear-gradient(150deg,#e6f2e1,#f7f8ed)}
+.impact h2{font-size:28px}
+.impact p{font-size:14px;line-height:1.7;color:#647d6d}
+.impact li{margin:17px 0;font-size:13px}
+
+.blockchain-prompt-box{border:1px solid #b7dfca;background:#f3fbf6;border-radius:12px;padding:14px;margin-top:15px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.blockchain-prompt-box strong{font-size:13px;color:#135d3b}
+.blockchain-prompt-box p{margin:2px 0 0;font-size:11px;color:#4d705d}
+
+.mini-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px}
+.mini-stat{background:white;border:1px solid var(--line);border-radius:14px;padding:20px}
+.mini-stat strong{display:block;font:800 24px Manrope;color:var(--green)}
+.mini-stat span{font-size:12px;color:var(--muted)}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:17px;flex-wrap:wrap}
+.panel-head h2{margin:0}
+table{border-collapse:collapse;width:100%;white-space:nowrap}
+th{text-align:left;background:#f6f9f4;color:#809187;font-size:11px;padding:13px}
+td{padding:14px;border-bottom:1px solid #edf1ec;font-size:12px;color:#486658;vertical-align:middle}
+td:first-child{font-weight:700;color:#234a39}
+.table-wrap{overflow-x:auto}
+.status{display:inline-block;padding:6px 9px;border-radius:20px;background:#e4f4e7;color:#197344;font-size:10px;font-weight:700}
+.status.claimed,.status.reserved{background:#e7f0ff;color:#3562a0}
+.status.completed{background:#dcfce7;color:#15803d}
+.status.cancelled,.status.expired{background:#fff0e4;color:#b86c22}
+.status.onchain-tag{background:#edeafd;color:#5521b5}
+
+.cart-item{display:grid;grid-template-columns:80px 1fr auto;align-items:center;gap:14px;border:1px solid var(--line);padding:12px;border-radius:13px;margin:12px 0}
+.cart-item img{width:80px;height:70px;object-fit:cover;border-radius:9px}
+.cart-item h3{font-size:14px;margin:0 0 6px}
+.cart-item p{font-size:12px;color:var(--muted)}
+.cart-item input{width:65px;padding:6px;border:1px solid var(--line);border-radius:7px}
+.remove{border:1px solid #ead7d0;background:#fff8f5;color:#b6503c;border-radius:8px;padding:8px}
+
+.chain-banner{background:linear-gradient(110deg,#e6f2e1,#e8f0fe);border-radius:18px;padding:24px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+.chain-banner h2{font-size:24px;margin:8px 0}
+.chain-banner p{font-size:13px;color:var(--muted);max-width:650px}
+.verify{display:flex;gap:8px}
+.verify input{padding:10px;border:1px solid var(--line);border-radius:8px;min-width:140px}
+
+/* Contract Config Box */
+.chain-config-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:15px;margin-bottom:20px}
+.config-card{background:#f9fcf9;border:1px solid #d4e6d7;border-radius:14px;padding:16px}
+.config-card h4{margin:0 0 8px;font-size:13px;color:#175f3d;display:flex;align-items:center;gap:6px}
+.config-card p{margin:0 0 10px;font-size:11px;color:var(--muted)}
+.config-card input{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:12px}
+
+/* Modals */
+.modal-overlay{position:fixed;inset:0;background:rgba(18,62,50,0.5);display:none;align-items:center;justify-content:center;z-index:2000;padding:20px}
+.modal-overlay.open{display:flex}
+.modal-box{background:white;border-radius:20px;padding:26px;max-width:480px;width:100%;box-shadow:0 20px 40px rgba(0,0,0,0.2);position:relative}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.modal-head h3{margin:0;font-size:19px;font-family:Manrope,sans-serif}
+.close-btn{border:0;background:transparent;font-size:20px;cursor:pointer;color:var(--muted)}
+
+footer{background:white;border-top:1px solid var(--line);padding:22px 4%;display:flex;justify-content:space-between;align-items:center;gap:15px;color:var(--muted);font-size:11px}
+.toast{position:fixed;bottom:22px;right:22px;background:#173f30;color:white;padding:14px 20px;border-radius:12px;box-shadow:var(--shadow);z-index:3000;opacity:0;pointer-events:none;transform:translateY(10px);transition:.25s;font-size:13px;max-width:380px}
+.toast.show{opacity:1;transform:none}
+
+/* Moving delivery truck in Food Cart */
+.cart-delivery{position:relative;overflow:hidden;margin:0 0 22px;padding:18px 18px 12px;border:1px solid #dce8df;border-radius:18px;background:linear-gradient(110deg,#eef7e8 0%,#fff8e8 55%,#fceee7 100%)}
+.cart-delivery-head{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+.cart-delivery-head h2{margin:0;font-size:20px}
+.delivery-caption{font-size:12px;color:#718379;margin:5px 0 0}
+.delivery-pill{background:#fff;border:1px solid #dce8df;color:#176b45;border-radius:30px;padding:7px 11px;font-size:11px;font-weight:800}
+.truck-scene{height:126px;position:relative;margin-top:8px;overflow:hidden}
+.truck-road{position:absolute;left:0;right:0;bottom:17px;height:4px;border-radius:10px;background:repeating-linear-gradient(90deg,#a6b9a9 0 28px,transparent 28px 45px)}
+.truck-road:before{content:"";position:absolute;left:0;right:0;top:-8px;height:1px;background:#d3e1d2}
+.truck-journey{position:absolute;bottom:20px;left:-190px;width:172px;height:82px;animation:trustTrayTruckDrive 8s ease-in-out infinite}
+.truck-vehicle{position:absolute;left:0;bottom:10px;width:166px;height:53px}
+.truck-box{position:absolute;left:0;bottom:10px;width:103px;height:49px;border-radius:9px 5px 4px 4px;background:linear-gradient(145deg,#258457,#176b45);border:2px solid #125c3b;color:#fff;display:flex;align-items:center;justify-content:center;gap:5px;box-shadow:0 5px 0 #c5d8c6;font:800 12px Manrope,sans-serif}
+.truck-box span:first-child{font-size:23px}
+.truck-cab{position:absolute;left:104px;bottom:10px;width:58px;height:37px;border-radius:5px 12px 4px 3px;background:#f2a36f;border:2px solid #d9824e}
+.truck-cab:before{content:"";position:absolute;right:5px;top:5px;width:20px;height:13px;border-radius:3px 7px 2px 2px;background:#e7f5f8;border:1px solid #b8d6d9}
+.truck-cab:after{content:"";position:absolute;left:5px;bottom:4px;width:8px;height:6px;border-radius:2px;background:#fff0a7}
+.truck-wheel{position:absolute;bottom:0;width:23px;height:23px;border:5px solid #294438;background:#e7eee5;border-radius:50%;box-shadow:inset 0 0 0 3px #82968a;animation:trustTrayWheelSpin .65s linear infinite}
+.truck-wheel.one{left:19px}
+.truck-wheel.two{left:119px}
+.truck-spark{position:absolute;right:2%;top:17px;font-size:23px;animation:truckSparkle 1.8s ease-in-out infinite}
+.truck-leaf{position:absolute;left:42%;top:17px;font-size:18px;animation:truckFloat 2.4s ease-in-out infinite}
+@keyframes trustTrayTruckDrive{
+  0%{left:-190px;transform:translateY(0)}
+  12%{left:7%;transform:translateY(0)}
+  20%{left:7%;transform:translateY(0)}
+  35%{left:7%;transform:translateY(0)}
+  88%{left:calc(100% + 15px);transform:translateY(0)}
+  100%{left:calc(100% + 15px);transform:translateY(0)}
+}
+@keyframes trustTrayWheelSpin{to{transform:rotate(360deg)}}
+@keyframes truckSparkle{0%,100%{transform:scale(.9) rotate(-8deg);opacity:.65}50%{transform:scale(1.15) rotate(8deg);opacity:1}}
+@keyframes truckFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+@media(max-width:1200px){
+  header{padding:12px 2%;gap:8px}
+  .brand{min-width:140px}
+  .brand .logo{flex-basis:58px;width:58px}
+  .navbtn{padding:10px 8px;font-size:12px}
+  .food-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:850px){
+  header{flex-wrap:wrap;padding:12px 5%}
+  .brand{min-width:0}
+  .brand .logo{flex-basis:56px;width:56px}
+  #menu{display:block;margin-left:auto;background:#e9f4e8;color:var(--green);border:0;border-radius:10px;padding:10px 13px}
+  nav{display:none;order:3;width:100%;flex-direction:column;align-items:stretch}
+  nav.open{display:flex}
+  .navbtn{text-align:left;font-size:13px}
+  .hero{grid-template-columns:1fr;padding:25px}
+  .hero-art img{height:190px;width:65%}
+  .hero-art{margin-top:20px}
+  .stats{grid-template-columns:repeat(2,1fr);gap:15px}
+  .stat:nth-child(2){border:0}
+  .layout{grid-template-columns:1fr}
+  .filters{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .filters hr{display:none}
+  .form-layout{grid-template-columns:1fr}
+  .impact{display:none}
+}
+@media(max-width:550px){
+  main{padding:15px 4% 35px}
+  .hero h1{font-size:34px}
+  .hero{padding:20px}
+  .search{gap:3px}
+  .search .btn{padding:10px}
+  .food-grid{grid-template-columns:1fr}
+  .food-img{height:190px}
+  .stats{padding:12px 5px}
+  .stat{justify-content:flex-start;gap:7px}
+  .stat-icon{width:35px;height:35px;font-size:17px}
+  .stat strong{font-size:15px}
+  .stat small{font-size:10px}
+  .filters{grid-template-columns:1fr}
+  .results-head{align-items:start;flex-direction:column}
+  .form-grid{grid-template-columns:1fr}
+  .form-grid label.full{grid-column:auto}
+  .mini-stats{grid-template-columns:1fr}
+  .panel-head{align-items:flex-start;flex-direction:column}
+  .verify{width:100%}
+  .verify input{flex:1;min-width:0;width:50%}
+  .cart-item{grid-template-columns:60px 1fr}
+  .cart-item img{width:60px;height:60px}
+  .cart-item .remove{grid-column:2;justify-self:start}
+  footer{flex-direction:column;align-items:flex-start}
+  .page-heading h1{font-size:32px}
+}
+@media(prefers-reduced-motion:reduce){
+  .truck-journey,.truck-wheel,.truck-spark,.truck-leaf{animation:none}
+  .truck-journey{left:7%}
+}
+
+header,.panel,.food-card,.mini-stat,.cart-item,.modal-box,.config-card,
+.filters,.empty,.stats,.cart-delivery,.chain-banner,.blockchain-prompt-box{
+  color:var(--color-text);
+}
+header,.panel,.food-card,.mini-stat,.modal-box,.cart-item,.security-notice{
+  background:var(--color-surface);
+}
+.hero,.impact,.stats,.cart-delivery,.chain-banner{
+  background:var(--sage);
+}
+.hero-note,.badge.expiring,.status.cancelled,.status.expired{
+  background:#FEF3C7;
+  color:#7C4200;
+}
+.primary,.wallet-btn:not(.connected),.cart-count{
+  background:var(--color-primary);
+}
+.wallet-btn:not(.connected):hover,.primary:hover{
+  background:var(--color-secondary);
+}
+.navbtn:hover,.navbtn.active,.filterbtn:hover,.filterbtn.active{
+  background:#E6EFE8;
+  color:var(--color-primary);
+}
+.badge,.wallet-status-dot,.status.completed,.status{
+  background:var(--color-secondary);
+}
+.badge.onchain,.status.onchain-tag,.diet,.status.completed{
+  color:var(--color-primary);
+  background:#E6EFE8;
+}
+.status.claimed,.status.reserved,.badge.expiring,.status.cancelled,.status.expired{
+  color:#7C4200;
+  background:#FEF3C7;
+}
+.status.unverified{
+  color:#7C4200;
+  background:#FEF3C7;
+}
+.diet.nonveg{
+  color:var(--color-text);
+  background:#EEF1EC;
+}
+.wallet-btn.connected,.wallet-badge,.wallet-badge.unverified,
+.wallet-badge.wrong-net{
+  color:var(--color-primary);
+  background:#E6EFE8;
+  border-color:#B8CCBD;
+}
+.truck-cab,.truck-box{
+  background:var(--color-secondary);
+}
+.delivery-pill,.stat-icon,.config-card,.filters{
+  background:var(--color-surface);
+}
+.remove,.btn-danger{
+  background:#B42318;
+  color:var(--color-surface);
+}
+.security-notice{
+  position:fixed;
+  z-index:3100;
+  top:82px;
+  right:22px;
+  width:min(440px,calc(100vw - 32px));
+  max-height:calc(100vh - 100px);
+  overflow:auto;
+  padding:18px;
+  border:1px solid #B8CCBD;
+  border-left:5px solid var(--color-accent);
+  border-radius:14px;
+  box-shadow:0 12px 32px rgba(23,77,54,.2);
+}
+.security-notice[hidden]{display:none}
+.security-notice h2{margin:0;font:800 17px Manrope,sans-serif}
+.security-notice p{margin:8px 0;color:var(--color-text);font-size:13px;line-height:1.55}
+.security-notice .security-guidance{
+  margin:12px 0;
+  padding:12px;
+  border-radius:10px;
+  background:#F7F7EF;
+}
+.security-notice ol{margin:8px 0;padding-left:21px;font-size:12px;line-height:1.6}
+.security-notice .security-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.security-notice .security-actions .btn{flex:1 1 125px;font-size:12px}
+.security-notice .security-note{font-size:11px;color:var(--muted)}
+@media(max-width:550px){
+  .security-notice{top:72px;right:10px;width:calc(100vw - 20px);padding:14px}
+  .security-notice .security-actions{flex-direction:column}
+  .security-notice .security-actions .btn{width:100%}
+}
+</style>
+</head>
+
+<body>
+
+<!-- MetaMask Detected Error Banner (Strict Anti-MetaMask Enforcement) -->
+<header>
+  <div class="brand" onclick="page('available')">
+    <img class="logo" src="./logo.png" alt="TrustTray logo">
+    <div><strong>TrustTray</strong><small>Good Food. Greater Impact.</small></div>
+  </div>
+  <button id="menu" onclick="document.querySelector('nav').classList.toggle('open')">☰ Menu</button>
+  <nav id="nav">
+    <button class="navbtn active" data-page="available">⌂ Available Food</button>
+    <button class="navbtn" data-page="share">＋ Share Surplus Food</button>
+    <button class="navbtn" data-page="donations">♡ My Donations</button>
+    <button class="navbtn" data-page="cart">🛒 Food Cart <b id="cartCount" class="cart-count">0</b></button>
+    <button class="navbtn" data-page="blockchain">⛓ Blockchain Records</button>
+  </nav>
+
+  <!-- Real BridgeKey Wallet Button -->
+  <div class="header-wallet-actions">
+    <button id="walletBtn" class="wallet-btn" onclick="handleWalletButtonClick()">
+      <span class="wallet-icon">🔑</span>
+      <span id="walletBtnText" aria-live="polite" aria-atomic="true">Connect BridgeKey</span>
+      <span id="walletDot" class="wallet-status-dot disconnected"></span>
+    </button>
+  </div>
+</header>
+
+<main>
+<!-- Available Food Page -->
+<section class="page active" id="page-available">
+  <div class="hero">
+    <div>
+      <span class="eyebrow">COMMUNITY FOOD RESCUE · MST TESTNET CONTRACT DATA</span>
+      <h1>Discover Food <em>Near You</em></h1>
+      <p>Save good food and feed someone in need. Sample listings are labeled separately from live MST records read from TrustTray.</p>
+      <div class="search">
+        <span>⌕</span>
+        <input id="search" placeholder="Search food, location or donor...">
+        <button class="btn primary" onclick="renderFoods()">Search</button>
+      </div>
+      <div class="chips" id="chips">
+        <button class="chip selected" data-cat="All">All Food</button>
+        <button class="chip" data-cat="Meals">🍛 Meals</button>
+        <button class="chip" data-cat="Vegetarian">🌿 Vegetarian</button>
+        <button class="chip" data-cat="Non-Vegetarian">🍗 Non-Vegetarian</button>
+        <button class="chip" data-cat="Bakery">🥐 Bakery</button>
+      </div>
+    </div>
+    <div class="hero-art">
+      <img src="https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=900&q=85" alt="meal">
+      <div class="hero-note">Good food<br>changes lives. ♥</div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><span class="stat-icon">♧</span><div><strong id="listingCount">11</strong><small>Available listings</small></div></div>
+    <div class="stat"><span class="stat-icon">🌿</span><div><strong id="foodPacksDistributed">0</strong><small>On-chain food packs completed</small></div></div>
+    <div class="stat"><span class="stat-icon">♙</span><div><strong id="completedRecipientCount">0</strong><small>Completed recipients on-chain</small></div></div>
+    <div class="stat"><span class="stat-icon">⛓</span><div>    <strong id="chainVerifiedCount">0</strong><small>On-chain donations</small></div></div>
+  </div>
+  <div class="layout">
+    <aside class="filters">
+      <h3>Filter by Category</h3>
+      <button class="filterbtn active" data-filter="All">♧ All Food</button>
+      <button class="filterbtn" data-filter="Meals">🍛 Meals</button>
+      <button class="filterbtn" data-filter="Snacks">🥪 Snacks</button>
+      <button class="filterbtn" data-filter="Bakery">🥐 Bakery</button>
+      <hr>
+      <h3>Food Type</h3>
+      <label class="check"><input type="checkbox" id="veg"> Vegetarian</label>
+      <label class="check"><input type="checkbox" id="nonveg"> Non-Vegetarian</label>
+      <hr>
+      <h3>Availability</h3>
+      <label class="check"><input type="checkbox" id="expiring"> Expiring soon</label>
+      <hr>
+      <h3>Location</h3>
+      <input class="field" id="location" placeholder="Enter area or city">
+      <p class="note">These sample listings use Pune locations. Live on-chain donations are marked on their cards.</p>
+    </aside>
+
+    <section>
+      <div class="results-head">
+        <div><span class="eyebrow">FRESH OPPORTUNITIES</span><h2>Available Food <span id="resultCount" class="muted"></span></h2></div>
+        <label class="note">Sort by
+          <select id="sort">
+            <option value="latest">Latest</option>
+            <option value="quantity">Quantity</option>
+            <option value="name">Food name</option>
+          </select>
+        </label>
+      </div>
+      <div class="food-grid" id="foodGrid"></div>
+      <div id="noFood" class="empty hidden">
+        <h3>🍃 No food found</h3>
+        <p>Try changing your search or filters.</p>
+        <button class="btn outline" onclick="clearFilters()">Clear filters</button>
+      </div>
+    </section>
+  </div>
+</section>
+
+<!-- Share Surplus Food Page -->
+<section class="page" id="page-share">
+  <div class="page-heading">
+    <span class="eyebrow">MAKE A DIFFERENCE · MST BLOCKCHAIN</span>
+    <h1>Share Surplus Food</h1>
+    <p>Publish food donations directly on-chain. BridgeKey wallet will prompt for transaction approval.</p>
+  </div>
+  <div class="form-layout">
+    <form class="panel" id="donationForm">
+      <h2>Food donation details</h2>
+      <div class="form-grid">
+        <label>Food name *<input required name="name" placeholder="e.g. Fresh veg meal boxes"></label>
+        <label>Category *<select required name="category"><option>Meals</option><option>Snacks</option><option>Bakery</option><option>Fruits & Vegetables</option></select></label>
+        <label>Quantity *<input required name="quantity" type="number" min="1" placeholder="e.g. 15"></label>
+        <label>Unit *<select name="unit"><option>portions</option><option>meal boxes</option><option>kg</option><option>pieces</option><option>bottles</option></select></label>
+        <label>Food type<select name="diet"><option>Vegetarian</option><option>Non-Vegetarian</option></select></label>
+        <label>Pickup deadline *<input required name="deadline" type="datetime-local"></label>
+        <label>Food expiry *<input required name="expiryTime" type="datetime-local"></label>
+        <label class="full">Pickup location *<input required name="location" placeholder="Area, city (e.g. FC Road, Pune)"></label>
+        <label class="full">Donor / organization name *<input required name="donor" placeholder="Restaurant or organization"></label>
+        <label class="full">Food image URL (optional)<input name="image" type="url" placeholder="https://..."></label>
+        <label class="full">Allergens / handling notes<textarea name="notes" rows="3" placeholder="Mention known allergens and storage instructions"></textarea></label>
+      </div>
+
+      <div class="blockchain-prompt-box">
+        <div>
+          <strong>⛓ Smart Contract Execution: TrustTray.sol</strong>
+          <p id="chainSubmitStatus">Checking MST Testnet deployment and ABI configuration...</p>
+        </div>
+        <button id="shareWalletBtn" type="button" class="btn outline btn-sm" onclick="handleWalletButtonClick()">Connect BridgeKey</button>
+      </div>
+
+      <button id="btnSubmitDonation" class="btn primary wide" type="submit">＋ Publish Food Donation</button>
+      <p class="note" id="publishHelpText">Each donation initiates an on-chain transaction in BridgeKey for approval before publishing.</p>
+    </form>
+    <aside class="panel impact">
+      <span style="font-size:38px">🌱</span>
+      <h2>Small action.<br>Big impact.</h2>
+      <p>By sharing surplus food, we reduce waste, nourish communities, and turn every extra meal into an opportunity to make a difference. Together, one donation at a time, we can build a world where no food goes to waste and no one goes hungry</p>
+    </aside>
+  </div>
+</section>
+
+<!-- My Donations Page -->
+<section class="page" id="page-donations">
+  <div class="page-heading"><span class="eyebrow">YOUR COMMUNITY IMPACT</span><h1>My Donations</h1><p>Track food you have shared, claimant details, and pickup confirmations.</p></div>
+  <div class="mini-stats" id="donationStats"></div>
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Donation history</h2>
+      <div>
+        <button class="btn outline btn-sm" onclick="syncOnChainDonations()">↻ Refresh On-Chain Data</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Donation</th><th>Quantity</th><th>Location</th><th>Deadline</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="donationsTable"></tbody>
+      </table>
+    </div>
+    <p id="donationsEmpty" class="note hidden">You have not shared any food yet. Add your first donation!</p>
+  </div>
+</section>
+
+<!-- Food Cart Page -->
+<section class="page" id="page-cart">
+  <div class="cart-delivery" aria-label="Animated TrustTray food delivery truck">
+    <div class="cart-delivery-head">
+      <div>
+        <h2>🚚 Your food is on its way to making a difference</h2>
+        <p class="delivery-caption">Choose surplus food, claim it via BridgeKey, and confirm receipt when collected.</p>
+      </div>
+      <span class="delivery-pill">MST BLOCKCHAIN DELIVERY</span>
+    </div>
+    <div class="truck-scene" aria-hidden="true">
+      <span class="truck-leaf">🌿</span>
+      <span class="truck-spark">✨</span>
+      <div class="truck-journey">
+        <div class="truck-vehicle">
+          <div class="truck-box"><span>🥡</span><span>TrustTray</span></div>
+          <div class="truck-cab"></div>
+          <span class="truck-wheel one"></span>
+          <span class="truck-wheel two"></span>
+        </div>
+      </div>
+      <div class="truck-road"></div>
+    </div>
+  </div>
+
+  <div class="page-heading"><span class="eyebrow">YOUR FOOD RESERVATIONS</span><h1>Food Cart</h1><p>Review your selections and confirm with BridgeKey. On-chain donations trigger a blockchain transaction for approval.</p></div>
+  <div class="panel">
+    <div class="panel-head"><h2>Reservation summary</h2><span id="cartPill" class="status">0 items</span></div>
+    <div id="cartItems"></div>
+    <p id="cartEmpty" class="note">Your cart is empty. Visit Available Food to reserve a listing.</p>
+    <button id="confirmReservation" class="btn primary hidden">⛓ Confirm Reservation with BridgeKey</button>
+    <p class="note" id="cartNote">On-chain donations will prompt BridgeKey for a blockchain transaction approval.</p>
+  </div>
+</section>
+
+<!-- Blockchain Records Page -->
+<section class="page" id="page-blockchain">
+  <div class="page-heading"><span class="eyebrow">TRANSPARENCY BY DESIGN</span><h1>Blockchain Records</h1><p>Smart contract interaction and live MST donation records.</p></div>
+  <div class="chain-banner">
+    <div>
+      <span class="eyebrow">MST BLOCKCHAIN &amp; TRUSTTRAY CONTRACT</span>
+      <h2>Trust through on-chain transparency.</h2>
+      <p>Wallet access uses the existing BridgeKey provider integration. Contract actions require the supplied ABI, the configured deployment on MST Testnet, and an eligible account.</p>
+    </div>
+    <div style="text-align:right">
+      <span class="status onchain-tag" style="font-size:12px;padding:8px 14px">Chain ID: 91562037 (MST Testnet)</span>
+    </div>
+  </div>
+
+  <!-- Smart Contract & BridgeKey Live Configuration -->
+  <div class="chain-config-grid">
+    <div class="config-card">
+      <h4><span>⚙️</span> Smart Contract Address</h4>
+      <p id="deploymentStatusText">Checking the configured deployment, network, and compiled contract ABI...</p>
+      <div style="display:flex;gap:6px">
+        <input id="contractAddressInput" placeholder="Configured TrustTray deployment" value="">
+        <button class="btn primary btn-sm" onclick="saveContractAddress()">Save</button>
+      </div>
+      <div style="margin-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <button id="btnDeployContract" class="btn outline btn-sm" onclick="deployPermissionlessContract()">🚀 Deploy Permissionless Contract</button>
+        <button id="btnResetContract" class="btn outline btn-sm" onclick="resetToDefaultContract()">Reset Default</button>
+      </div>
+      <small style="display:block;margin-top:6px;color:#718379" id="contractDeploymentNote">Connected to MST Testnet (Chain ID 91562037).</small>
+    </div>
+
+    <div class="config-card">
+      <h4><span>🔑</span> Connected BridgeKey Account</h4>
+      <p>Your current wallet address on MST network:</p>
+      <input id="connectedAddressDisplay" readonly value="Not connected">
+      <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center">
+        <span id="accountContractStatus" class="status unverified">Checking wallet status...</span>
+        <button id="btnOpenWalletDrawer" class="btn outline btn-sm" onclick="handleWalletButtonClick()">Manage Wallet</button>
+      </div>
+    </div>
+
+    <div class="config-card">
+      <h4><span>🌱</span> Permissionless Donations</h4>
+      <p>All surplus food donations are stored on-chain. Transactions require BridgeKey wallet approval.</p>
+    </div>
+  </div>
+
+  <div class="mini-stats" id="chainStats"></div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h2>On-Chain Donation Activity</h2>
+      <div class="verify">
+        <input id="verifyInput" placeholder="Lookup Donation ID (e.g. 1)">
+        <button class="btn primary" id="verifyButton">Lookup On-Chain</button>
+      </div>
+    </div>
+
+    <!-- On-chain lookup result box -->
+    <div id="onChainLookupResult" class="hidden" style="background:#f4fbf7;border:1px solid #b7e3ca;border-radius:12px;padding:16px;margin-bottom:18px"></div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Donation ID</th><th>Food Name</th><th>Quantity</th><th>Location</th><th>Status</th><th>Contract</th></tr></thead>
+        <tbody id="chainTable"></tbody>
+      </table>
+    </div>
+    <p id="chainEmpty" class="note hidden">No matching blockchain records found.</p>
+  </div>
+
+  <div class="panel" style="margin-top:20px">
+    <div class="panel-head"><h2>Confirmed Transactions</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Donation</th><th>Action</th><th>Status</th><th>Transaction Hash</th></tr></thead>
+        <tbody id="chainTransactionTable"></tbody>
+      </table>
+    </div>
+    <p id="chainTransactionsEmpty" class="note">No confirmed TrustTray transactions in this browser yet.</p>
+  </div>
+</section>
+</main>
+
+<!-- Modal: Connected BridgeKey Account Details -->
+<div id="walletModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:22px">🔑</span>
+        <h3 style="margin:0">BridgeKey Wallet</h3>
+      </div>
+      <button class="close-btn" onclick="toggleWalletModal(false)">✕</button>
+    </div>
+    <div style="display:grid;gap:14px">
+      <div style="background:#f7faf8;border:1px solid var(--line);border-radius:12px;padding:14px">
+        <label style="font-size:11px;color:var(--muted);font-weight:700">CONNECTED ACCOUNT</label>
+        <p id="modalAccount" style="font-size:13px;font-weight:700;word-break:break-all;margin:6px 0 0;color:var(--dark)"></p>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="background:#f7faf8;border:1px solid var(--line);border-radius:12px;padding:12px">
+          <label style="font-size:11px;color:var(--muted);font-weight:700">BALANCE</label>
+          <p id="modalBalance" style="font-size:15px;font-weight:800;margin:4px 0 0;color:var(--green)">Unavailable</p>
+        </div>
+        <div style="background:#f7faf8;border:1px solid var(--line);border-radius:12px;padding:12px">
+          <label style="font-size:11px;color:var(--muted);font-weight:700">CONTRACT ACCESS</label>
+          <p id="modalContractStatus" style="font-size:13px;font-weight:800;margin:4px 0 0;color:var(--green)">Checking...</p>
+        </div>
+      </div>
+      <div style="background:#f7faf8;border:1px solid var(--line);border-radius:12px;padding:12px">
+        <label style="font-size:11px;color:var(--muted);font-weight:700">ACTIVE NETWORK</label>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+          <span id="modalNetworkLabel" style="font-size:13px;font-weight:700">Network not checked</span>
+          <button id="modalSwitchNetBtn" class="btn outline btn-sm hidden" onclick="handleSwitchNetworkClick()">Switch to MST Testnet</button>
+        </div>
+        <div id="mstNetworkHelp" class="hidden" style="margin-top:10px;font-size:12px;line-height:1.6">
+          <strong>Verified MST Testnet settings</strong>
+          <p id="mstNetworkConfig" style="white-space:pre-line;margin:4px 0"></p>
+          <a id="mstNetworkExplorer" target="_blank" rel="noopener noreferrer"></a>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:6px">
+        <button class="btn outline" style="flex:1" onclick="copyAddress()">Copy Address</button>
+        <button class="btn btn-danger" style="flex:1" onclick="disconnectWallet()">Disconnect locally</button>
+      </div>
+      <p class="note">This clears TrustTray's local wallet session only. To revoke the site's permission, use BridgeKey's connected-site controls. Disconnecting does not lock your wallet or cancel pending transactions.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: BridgeKey Extension Missing or Inactive -->
+<div id="extNotFoundModal" class="modal-overlay">
+  <div class="modal-box" style="max-width:500px">
+    <div class="modal-head">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:26px">🔑</span>
+        <h3 style="margin:0">BridgeKey Wallet</h3>
+      </div>
+      <button class="close-btn" onclick="toggleExtNotFoundModal(false)">✕</button>
+    </div>
+    <div style="padding:10px 0 18px">
+      <div id="extNotFoundMessage" style="font-size:13px;line-height:1.6;margin:0 0 14px;color:var(--dark)">
+        No BridgeKey provider was detected by the webpage.
+      </div>
+      <div id="extInstructionsBox" style="background:#f4fbf7;border:1px solid #bce4cd;border-radius:12px;padding:14px;font-size:12px;line-height:1.6;color:#185337">
+        <!-- Dynamically rendered depending on file:/// vs http:// -->
+      </div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <a href="https://chromewebstore.google.com/detail/bridgekey/bfjojdcfenehemjgjlepdjomkpginlkg" target="_blank" rel="noopener noreferrer" class="btn primary" style="flex:1;text-align:center;text-decoration:none;font-size:12px">
+        Get BridgeKey on Chrome Web Store ↗
+      </a>
+      <button class="btn outline" style="flex:1;font-size:12px" onclick="retryConnection()">
+        Retry Connection
+      </button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="brand" onclick="page('available')">
+    <img class="logo" src="./logo.png" alt="TrustTray logo">
+    <div><strong>TrustTray</strong><small>Good Food. Greater Impact.</small></div>
+  </div>
+  <span>BridgeKey Wallet · MST Testnet · supplied TrustTray ABI</span>
+  <span>Hackathon Edition 2026</span>
+</footer>
+
+<div id="toast" class="toast"></div>
+<aside id="walletSecurityNotice" class="security-notice" aria-label="BridgeKey security notice" hidden>
+  <h2 id="walletSecurityTitle">BridgeKey security reminder</h2>
+  <p id="walletSecurityMessage" role="status" aria-live="polite" aria-atomic="true"></p>
+  <div id="walletDisconnectGuidance" class="security-guidance" hidden>
+    <strong>Disconnect TrustTray in BridgeKey</strong>
+    <ol>
+      <li>Open the BridgeKey browser extension.</li>
+      <li>Find its connected sites or site permissions for this website.</li>
+      <li>Select TrustTray and choose its disconnect or revoke-site option. BridgeKey’s labels may differ.</li>
+    </ol>
+    <p class="security-note">Disconnecting a site does not necessarily lock your wallet, revoke every permission, or cancel pending transactions. BridgeKey's <a href="https://bridgekey.io/support" target="_blank" rel="noopener noreferrer">published help</a> does not document exact disconnect controls; contact its support if you cannot find them.</p>
+  </div>
+  <div id="walletReminderActions" class="security-actions">
+    <button class="btn primary" type="button" data-security-action="disconnect">I've finished — disconnect</button>
+    <button class="btn outline" type="button" data-security-action="later">Remind me later</button>
+    <button class="btn outline" type="button" data-security-action="continue">Continue using TrustTray</button>
+  </div>
+  <div id="walletDisconnectActions" class="security-actions" hidden>
+    <button class="btn primary" type="button" data-security-action="disconnect-local">Disconnect locally</button>
+    <button class="btn outline" type="button" data-security-action="close">Close</button>
+  </div>
+  <div id="walletTransactionActions" class="security-actions" hidden>
+    <button class="btn outline" type="button" data-security-action="close">Dismiss</button>
+  </div>
+</aside>
+
+<script>
+const TRUST_TRAY_CONFIG = window.TRUST_TRAY_CONFIG;
+if (!TRUST_TRAY_CONFIG) {
+  throw new Error("TrustTray contract configuration did not load.");
+}
+const MST_CHAIN_ID_DEC = TRUST_TRAY_CONFIG.network.chainId;
+const MST_RPC_URL = TRUST_TRAY_CONFIG.network.rpcUrl;
+const MST_EXPLORER_URL = TRUST_TRAY_CONFIG.network.explorerUrl;
+const MST_CURRENCY_SYMBOL = TRUST_TRAY_CONFIG.network.currencySymbol;
+const MST_CHAIN_NAME = TRUST_TRAY_CONFIG.network.name;
+const DEFAULT_CONTRACT_ADDRESS = TRUST_TRAY_CONFIG.contractAddress;
+const CONTRACT_DEPLOYMENT_CONFIRMED = TRUST_TRAY_CONFIG.deploymentConfirmed;
+const WALLET_REMINDER_INTERVAL_MS = 120000;
+let TRUST_TRAY_ABI = [];
+
+const ON_CHAIN_STATUS_NAMES = ["Available", "Claimed", "Completed", "Cancelled"];
+/* ==========================================================================
+   1. CONSTANTS & BLOCKCHAIN CONFIGURATION
+   ========================================================================== */
+/* ==========================================================================
+   2. SAMPLE DATA SEED
+   ========================================================================== */
+const IMG = {
+  meals: "https://www.cookshideout.com/wp-content/uploads/2017/03/Simple-Vegetarian-South-Indian-Thali1S.jpg",
+  sandwich: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=800&q=80",
+  biryani: "https://www.madhuseverydayindian.com/wp-content/uploads/2022/11/veg-biryani-1024x1536.jpg",
+  bakery: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=800&q=80",
+  pasta: "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=800&q=80",
+  cookies: "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&w=800&q=80",
+  roti: "https://commons.wikimedia.org/wiki/Special:FilePath/Roti%20or%20chappati.jpg?width=800",
+  dalFry: "https://commons.wikimedia.org/wiki/Special:FilePath/DAAL%20FRY.JPG?width=800",
+  paneerTikka: "https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?auto=format&fit=crop&w=800&q=80",
+  pizza: "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80",
+  burger: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80",
+  chickenBiryani: "https://pistahouse.in/cdn/shop/files/Copy_of_18._Chicken_Biryani_SPCL_1.jpg?v=1757225550&width=840",
+  fishcurry: "https://images.unsplash.com/photo-1626508035297-0cd27c397d67?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+  chicken65: "https://images.unsplash.com/photo-1727280376746-b89107a5b0df?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+  eggcurry: "https://images.unsplash.com/photo-1764315197254-94385571df22?q=80&w=1331&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D"
+};
+
+const seed = [
+  {id:"TT-DEMO-101",name:"Veg Meals",category:"Meals",diet:"Vegetarian",quantity:15,unit:"meal boxes",location:"FC Road, Pune",donor:"Spice Restaurant",deadline:"2026-11-2T18:00",image:IMG.meals},
+  {id:"TT-DEMO-102",name:"Garden Sandwiches",category:"Snacks",diet:"Vegetarian",quantity:20,unit:"portions",location:"JM Road, Pune",donor:"Cafe Delight",deadline:"2026-11-1T16:00",image:IMG.sandwich,expiring:true},
+  {id:"TT-DEMO-103",name:"Veg Biryani",category:"Meals",diet:"Vegetarian",quantity:10,unit:"meal boxes",location:"Shivajinagar, Pune",donor:"Hotel Taste Hub",deadline:"2026-10-29T17:00",image:IMG.biryani,expiring:true},
+  {id:"TT-DEMO-104",name:"Bakery Treats",category:"Bakery",diet:"Vegetarian",quantity:8,unit:"pieces",location:"FC Road, Pune",donor:"Sweet Treats",deadline:"2026-10-29T19:00",image:IMG.bakery},
+  {id:"TT-DEMO-105",name:"Pasta Portions",category:"Meals",diet:"Vegetarian",quantity:12,unit:"portions",location:"Baner, Pune",donor:"The Good Bowl",deadline:"2026-10-29T19:00",image:IMG.pasta},
+  {id:"TT-DEMO-106",name:"Cookies",category:"Bakery",diet:"Vegetarian",quantity:25,unit:"pieces",location:"Baner, Pune",donor:"Sweet Treats",deadline:"2026-10-29T20:00",image:IMG.cookies},
+  {id:"TT-DEMO-107",name:"Fresh Roti",category:"Meals",diet:"Vegetarian",quantity:30,unit:"pieces",location:"Kothrud, Pune",donor:"Annapurna Kitchen",deadline:"2026-10-29T18:30",image:IMG.roti},
+  {id:"TT-DEMO-108",name:"Dal Fry",category:"Meals",diet:"Vegetarian",quantity:12,unit:"meal boxes",location:"Aundh, Pune",donor:"Homely Meals",deadline:"2026-10-29T18:00",image:IMG.dalFry},
+  {id:"TT-DEMO-109",name:"Paneer Tikka",category:"Snacks",diet:"Vegetarian",quantity:18,unit:"portions",location:"Viman Nagar, Pune",donor:"Tandoor House",deadline:"2026-10-29T19:00",image:IMG.paneerTikka},
+  {id:"TT-DEMO-110",name:"Cheese Pizza",category:"Meals",diet:"Vegetarian",quantity:6,unit:"whole pizzas",location:"Koregaon Park, Pune",donor:"Slice of Joy",deadline:"2026-10-29T20:00",image:IMG.pizza},
+  {id:"TT-DEMO-111",name:"Veg Burger",category:"Snacks",diet:"Vegetarian",quantity:14,unit:"pieces",location:"Deccan, Pune",donor:"Burger Corner",deadline:"2026-10-29T19:30",image:IMG.burger},
+  {id:"TT-DEMO-112",name:"Chicken Biryani",category:"Meals",diet:"Non-Vegetarian",quantity:15,unit:"pieces",location:"Deccan, Pune",donor:"RK Biryani,Pune",deadline:"2026-11-30T19:30",image:IMG.chickenBiryani},
+  {id:"TT-DEMO-113",name:"Fish Curry",category:"Meals",diet:"Non-Vegetarian",quantity:12,unit:"meal boxes",location:"Aundh, Pune",donor:"Homely Meals",deadline:"2026-10-29T18:00",image:IMG.fishcurry},
+  {id:"TT-DEMO-114",name:"Chicken 65",category:"Snacks",diet:"Non-Vegetarian",quantity:18,unit:"portions",location:"Viman Nagar, Pune",donor:"Tandoor House",deadline:"2026-10-29T19:00",image:IMG.chicken65},
+  {id:"TT-DEMO-115",name:"Egg Curry",category:"Meals",diet:"Non-Vegetarian",quantity:12,unit:"meal boxes",location:"Kothrud, Pune",donor:"Annapurna Kitchen",deadline:"2026-10-29T18:30",image:IMG.eggcurry}
+];
+
+/* ==========================================================================
+   3. APPLICATION STATE
+   ========================================================================== */
+function load(key,fallback){
+  try{return JSON.parse(localStorage.getItem(key))||fallback}
+  catch{return fallback}
+}
+
+// foods always starts as just the demo seeds (on-chain items are merged in by syncOnChainDonations)
+let foods = seed.map(s => ({...s}));   // always start fresh from seed — no stale localStorage
+let donations = load("ttDonations", []).filter(item => !item.isOnChain);
+let cart = load("ttCart", []);
+let records = load("ttRecords", []);
+// Per-cart-item reservation state: "awaiting" | "pending" | "reserved" | "failed"
+const cartItemStates = {};   // keyed by cart item id
+let category = "All";
+
+// BridgeKey & Web3 State
+let currentAccount = null;
+let currentChainId = null;
+let isConnecting = false;
+let activeProvider = null;
+let web3Provider = null;
+let readOnlyProvider = null;
+let web3Signer = null;
+let trustTrayContract = null;
+let contractAddress = DEFAULT_CONTRACT_ADDRESS;
+let deploymentStatus = "MST Testnet RPC has not been checked.";
+let deployedBytecodeAvailable = false;
+let contractAbiStatus = "The supplied TrustTray ABI has not been loaded.";
+let contractAbiReady = false;
+let onChainDonations = [];
+let donationSubmissionInProgress = false;
+const activeDonationTransactions = new Set();
+
+// EIP-6963 announcements are the only wallet identity accepted by this page.
+const eip6963Providers = new Map();
+let providerEventHandlers = null;
+let providerDiscoveryPromise = null;
+let walletInitializationPromise = null;
+let walletSyncGeneration = 0;
+let walletReminderTimer = null;
+let walletReminderAccount = null;
+let walletReminderSuppressedAccount = null;
+let walletReminderNoticeTimestamp = null;
+let activeSecurityNotice = null;
+let pendingBlockchainTransactions = 0;
+const queuedTransactionSecurityNotices = [];
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+function save(){
+  localStorage.setItem("ttFoods", JSON.stringify(foods));
+  localStorage.setItem("ttDonations", JSON.stringify(donations));
+  localStorage.setItem("ttCart", JSON.stringify(cart));
+  localStorage.setItem("ttRecords", JSON.stringify(records));
+}
+
+function toast(msg){
+  let t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(window.toastTimer);
+  window.toastTimer = setTimeout(() => t.classList.remove("show"), 3500);
+}
+
+function walletReminderStorageKey(account) {
+  return `trustTrayReminderAt:${account.toLowerCase()}`;
+}
+
+function walletReminderPreferenceKey(account) {
+  return `trustTrayReminderContinued:${account.toLowerCase()}`;
+}
+
+function clearWalletReminderTimer() {
+  clearTimeout(walletReminderTimer);
+  walletReminderTimer = null;
+}
+
+function hideSecurityNotice() {
+  $("walletSecurityNotice").hidden = true;
+  $("walletDisconnectGuidance").hidden = true;
+  $("walletReminderActions").hidden = true;
+  $("walletDisconnectActions").hidden = true;
+  $("walletTransactionActions").hidden = true;
+  activeSecurityNotice = null;
+  walletReminderNoticeTimestamp = null;
+}
+
+function reminderWasContinued(account) {
+  if (walletReminderSuppressedAccount === account.toLowerCase()) return true;
+  try {
+    return localStorage.getItem(walletReminderPreferenceKey(account)) === account.toLowerCase();
+  } catch (error) {
+    console.warn("Could not read the shared BridgeKey reminder preference:", error);
+    return false;
+  }
+}
+
+function showSecurityNotice(type, title, message) {
+  $("walletSecurityTitle").textContent = title;
+  $("walletSecurityMessage").textContent = message;
+  $("walletSecurityNotice").hidden = false;
+  $("walletReminderActions").hidden = type !== "reminder";
+  $("walletDisconnectActions").hidden = type !== "disconnect-guidance";
+  $("walletTransactionActions").hidden = type !== "transaction";
+  $("walletDisconnectGuidance").hidden = type !== "disconnect-guidance";
+  activeSecurityNotice = type;
+}
+
+function scheduleWalletReminder(delay = WALLET_REMINDER_INTERVAL_MS) {
+  clearWalletReminderTimer();
+  walletReminderTimer = setTimeout(showWalletReminder, delay);
+}
+
+function showWalletReminder() {
+  walletReminderTimer = null;
+  if (!currentAccount || !activeProvider || pendingBlockchainTransactions > 0) return;
+  const account = currentAccount.toLowerCase();
+  if (reminderWasContinued(account)) return;
+
+  const now = Date.now();
+  try {
+    const key = walletReminderStorageKey(account);
+    const previousReminder = Number(localStorage.getItem(key) || 0);
+    if (now - previousReminder < WALLET_REMINDER_INTERVAL_MS) {
+      scheduleWalletReminder(WALLET_REMINDER_INTERVAL_MS - (now - previousReminder) + 250);
+      return;
+    }
+    localStorage.setItem(key, String(now));
+    if (Number(localStorage.getItem(key)) !== now) {
+      scheduleWalletReminder();
+      return;
+    }
+    walletReminderNoticeTimestamp = now;
+  } catch (error) {
+    console.warn("Could not coordinate BridgeKey reminders across tabs:", error);
+  }
+
+  showSecurityNotice(
+    "reminder",
+    "BridgeKey security reminder",
+    "Your BridgeKey wallet is connected to TrustTray. If you have finished your blockchain transactions, consider disconnecting TrustTray and locking your wallet in BridgeKey."
+  );
+}
+
+function syncWalletReminderLifecycle() {
+  if (!currentAccount || !activeProvider) {
+    clearWalletReminderTimer();
+    walletReminderAccount = null;
+    if (activeSecurityNotice === "reminder" || activeSecurityNotice === "disconnect-guidance") {
+      hideSecurityNotice();
+    }
+    return;
+  }
+
+  const account = currentAccount.toLowerCase();
+  if (walletReminderAccount !== account) {
+    clearWalletReminderTimer();
+    walletReminderAccount = account;
+    walletReminderSuppressedAccount = null;
+    try {
+      localStorage.removeItem(walletReminderPreferenceKey(account));
+    } catch (error) {
+      console.warn("Could not clear the previous BridgeKey reminder preference:", error);
+    }
+    if (activeSecurityNotice === "reminder" || activeSecurityNotice === "disconnect-guidance") {
+      hideSecurityNotice();
+    }
+  }
+
+  if (pendingBlockchainTransactions > 0 || reminderWasContinued(account) ||
+      activeSecurityNotice === "transaction" || queuedTransactionSecurityNotices.length > 0) {
+    clearWalletReminderTimer();
+    if (activeSecurityNotice === "reminder" || activeSecurityNotice === "disconnect-guidance") {
+      hideSecurityNotice();
+    }
+    return;
+  }
+
+  if (!walletReminderTimer && activeSecurityNotice !== "reminder" &&
+      activeSecurityNotice !== "disconnect-guidance") {
+    scheduleWalletReminder();
+  }
+}
+
+function beginBlockchainConfirmation() {
+  pendingBlockchainTransactions += 1;
+  clearWalletReminderTimer();
+  if (activeSecurityNotice === "reminder" || activeSecurityNotice === "disconnect-guidance") {
+    hideSecurityNotice();
+  }
+}
+
+function cancelBlockchainConfirmation() {
+  pendingBlockchainTransactions = Math.max(0, pendingBlockchainTransactions - 1);
+  syncWalletReminderLifecycle();
+}
+
+function finishBlockchainConfirmation(action, outcome) {
+  pendingBlockchainTransactions = Math.max(0, pendingBlockchainTransactions - 1);
+  const message = outcome === "success"
+    ? `${action} transaction confirmed successfully. If you are finished using TrustTray, disconnect this site from BridgeKey and lock your wallet there. Disconnecting the site does not necessarily lock the wallet, revoke every permission, or cancel pending transactions.`
+    : outcome === "failed"
+      ? `${action} transaction failed. TrustTray has not reported it as successful. Check the transaction in BridgeKey or MSTScan. Disconnecting the site does not cancel a pending transaction.`
+      : `${action} transaction was submitted, but TrustTray could not confirm its final outcome. Check BridgeKey or MSTScan before retrying; do not assume it succeeded or that disconnecting cancels it.`;
+  queuedTransactionSecurityNotices.push({ action, message });
+  if (pendingBlockchainTransactions === 0) {
+    showNextTransactionSecurityNotice();
+  }
+  syncWalletReminderLifecycle();
+}
+
+function getConfirmedFailureOutcome(error) {
+  return error && error.receipt && Number(error.receipt.status) === 0
+    ? "failed"
+    : "unknown";
+}
+
+function showNextTransactionSecurityNotice() {
+  if (pendingBlockchainTransactions > 0 || activeSecurityNotice === "transaction") return;
+  const notice = queuedTransactionSecurityNotices.shift();
+  if (!notice) return;
+  showSecurityNotice("transaction", `${notice.action} transaction update`, notice.message);
+}
+
+function dismissSecurityNotice() {
+  const wasTransaction = activeSecurityNotice === "transaction";
+  hideSecurityNotice();
+  if (wasTransaction) {
+    showNextTransactionSecurityNotice();
+    syncWalletReminderLifecycle();
+  } else {
+    syncWalletReminderLifecycle();
+  }
+  $("walletBtn").focus();
+}
+
+$("walletSecurityNotice").addEventListener("click", event => {
+  const button = event.target.closest("[data-security-action]");
+  if (!button) return;
+
+  const action = button.dataset.securityAction;
+  if (action === "disconnect") {
+    showSecurityNotice(
+      "disconnect-guidance",
+      "Disconnect TrustTray in BridgeKey",
+      "This BridgeKey integration does not expose a documented site-disconnect method, so TrustTray cannot revoke the extension permission directly. Use BridgeKey’s connected-site controls below."
+    );
+    $("walletDisconnectActions").querySelector('[data-security-action="disconnect-local"]').focus();
+  } else if (action === "disconnect-local") {
+    disconnectWallet("TrustTray's local wallet session was disconnected.");
+    $("walletBtn").focus();
+  } else if (action === "later") {
+    hideSecurityNotice();
+    scheduleWalletReminder();
+    $("walletBtn").focus();
+  } else if (action === "continue") {
+    if (currentAccount) {
+      walletReminderSuppressedAccount = currentAccount.toLowerCase();
+      try {
+        localStorage.setItem(
+          walletReminderPreferenceKey(currentAccount),
+          currentAccount.toLowerCase()
+        );
+      } catch (error) {
+        console.warn("Could not save the BridgeKey reminder preference:", error);
+      }
+    }
+    hideSecurityNotice();
+    clearWalletReminderTimer();
+    $("walletBtn").focus();
+  } else if (action === "close") {
+    dismissSecurityNotice();
+  }
+});
+
+window.addEventListener("storage", event => {
+  if (!currentAccount) return;
+  const account = currentAccount.toLowerCase();
+  if (event.key === walletReminderPreferenceKey(account)) {
+    if (event.newValue === account) {
+      walletReminderSuppressedAccount = account;
+      clearWalletReminderTimer();
+      if (activeSecurityNotice === "reminder" || activeSecurityNotice === "disconnect-guidance") {
+        hideSecurityNotice();
+      }
+    } else if (event.newValue === null) {
+      walletReminderSuppressedAccount = null;
+      syncWalletReminderLifecycle();
+    }
+    return;
+  }
+  if (event.key === walletReminderStorageKey(account) &&
+      activeSecurityNotice === "reminder" &&
+      Number(event.newValue) > Number(walletReminderNoticeTimestamp || 0)) {
+    hideSecurityNotice();
+    scheduleWalletReminder(
+      Math.max(1000, WALLET_REMINDER_INTERVAL_MS - (Date.now() - Number(event.newValue)))
+    );
+  }
+});
+
+window.addEventListener("pagehide", () => {
+  clearWalletReminderTimer();
+  cleanupProviderEventListeners();
+});
+window.addEventListener("pageshow", () => {
+  initializeBridgeKeySession();
+  syncWalletReminderLifecycle();
+});
+
+/* ==========================================================================
+   4. BRIDGEKEY PROVIDER DISCOVERY & EIP-1193 CONNECTION
+   ========================================================================== */
+
+window.addEventListener("eip6963:announceProvider", event => {
+  const { info, provider } = event.detail || {};
+  if (!info || typeof info.uuid !== "string" || !provider) return;
+
+  eip6963Providers.set(info.uuid, { info, provider });
+});
+
+function isBridgeKeyAnnouncement({ info, provider }) {
+  const name = typeof info.name === "string" ? info.name.trim().toLowerCase() : "";
+  return ["bridgekey", "bridgekey wallet", "bridgekey wallet extension"].includes(name) &&
+    provider && typeof provider.request === "function" &&
+    typeof provider.on === "function" && typeof provider.removeListener === "function";
+}
+
+async function discoverBridgeKeyProvider(timeoutMs) {
+  const startedAt = Date.now();
+  let nextRequestAt = 0;
+  let firstAnnouncementAt = null;
+  while (Date.now() - startedAt < timeoutMs) {
+    if (Date.now() >= nextRequestAt) {
+      window.dispatchEvent(new Event("eip6963:requestProvider"));
+      nextRequestAt = Date.now() + 250;
+    }
+
+    const announcements = [...eip6963Providers.values()].filter(({ info }) => {
+      const name = typeof info.name === "string" ? info.name.trim().toLowerCase() : "";
+      return ["bridgekey", "bridgekey wallet", "bridgekey wallet extension"].includes(name);
+    });
+    if (announcements.length > 0 && firstAnnouncementAt === null) {
+      firstAnnouncementAt = Date.now();
+    }
+    if (firstAnnouncementAt !== null && Date.now() - firstAnnouncementAt >= 350) {
+      break;
+    }
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
+
+  const announcements = [...eip6963Providers.values()].filter(({ info }) => {
+    const name = typeof info.name === "string" ? info.name.trim().toLowerCase() : "";
+    return ["bridgekey", "bridgekey wallet", "bridgekey wallet extension"].includes(name);
+  });
+  const matches = announcements.filter(isBridgeKeyAnnouncement);
+  if (matches.length === 1) return { provider: matches[0].provider };
+  if (matches.length > 1) return { reason: "ambiguous" };
+  if (announcements.length > 0) return { reason: "unsupported_api" };
+  if (window.ethereum) return { reason: "unidentified" };
+  return { reason: "missing" };
+}
+
+function detectBridgeKeyProvider(timeoutMs = 2500) {
+  if (providerDiscoveryPromise) return providerDiscoveryPromise;
+  providerDiscoveryPromise = discoverBridgeKeyProvider(timeoutMs)
+    .finally(() => { providerDiscoveryPromise = null; });
+  return providerDiscoveryPromise;
+}
+
+function requestWithTimeout(provider, request, timeoutMs = 120000) {
+  let timeoutId;
+  return Promise.race([
+    provider.request(request),
+    new Promise((_, reject) => {
+      timeoutId = setTimeout(
+        () => reject(new Error("BridgeKey did not respond in time. Unlock the extension and try again.")),
+        timeoutMs
+      );
+    })
+  ]).finally(() => clearTimeout(timeoutId));
+}
+
+function parseChainId(chainId) {
+  if (typeof chainId !== "string" || !/^0x[0-9a-f]+$/i.test(chainId)) {
+    throw new Error("The wallet returned an invalid chain ID.");
+  }
+  const parsed = Number(BigInt(chainId));
+  if (!Number.isSafeInteger(parsed)) {
+    throw new Error("The wallet returned an unsupported chain ID.");
+  }
+  return parsed;
+}
+
+function activateBridgeKeyProvider(provider) {
+  if (activeProvider !== provider) {
+    walletSyncGeneration++;
+    activeProvider = provider;
+    web3Provider = new ethers.BrowserProvider(provider);
+  } else if (!web3Provider) {
+    web3Provider = new ethers.BrowserProvider(provider);
+  }
+  if (!setupProviderEventListeners(provider)) {
+    throw new Error("BridgeKey does not support the account and network events required to keep TrustTray synchronized.");
+  }
+}
+
+async function syncAuthorizedWalletSession(provider, { notify = false } = {}) {
+  activateBridgeKeyProvider(provider);
+  const generation = ++walletSyncGeneration;
+  const accounts = await requestWithTimeout(provider, { method: "eth_accounts" }, 10000);
+  if (activeProvider !== provider || generation !== walletSyncGeneration) return false;
+
+  if (!Array.isArray(accounts) || accounts.length === 0) {
+    if (currentAccount) {
+      disconnectWallet("BridgeKey no longer authorizes an account for this site.", {
+        preserveProvider: true,
+        notify
+      });
+    } else {
+      currentChainId = null;
+      updateWalletUI();
+    }
+    return false;
+  }
+  if (typeof accounts[0] !== "string" || !ethers.isAddress(accounts[0])) {
+    throw new Error("BridgeKey returned an invalid authorized account.");
+  }
+
+  const previousAccount = currentAccount;
+  currentAccount = accounts[0];
+  walletReminderSuppressedAccount = null;
+  if (previousAccount?.toLowerCase() !== currentAccount.toLowerCase()) {
+    renderBlockchain();
+  }
+
+  try {
+    await verifyAndSyncNetwork(provider, currentAccount, generation);
+  } catch (error) {
+    if (activeProvider !== provider || generation !== walletSyncGeneration) return false;
+    currentChainId = null;
+    updateWalletUI();
+    if (notify) {
+      toast(`BridgeKey authorized ${shortAddress(currentAccount)}, but the network could not be read: ${error.message}`);
+    } else {
+      console.warn("Could not restore the BridgeKey network state:", error);
+    }
+  }
+
+  if (activeProvider !== provider || generation !== walletSyncGeneration) return false;
+  updateWalletUI();
+  if (notify && previousAccount?.toLowerCase() !== currentAccount.toLowerCase()) {
+    toast(`BridgeKey connected: ${shortAddress(currentAccount)}. Network status checked.`);
+  }
+  return true;
+}
+
+async function initializeBridgeKeySession() {
+  if (walletInitializationPromise) return walletInitializationPromise;
+  walletInitializationPromise = (async () => {
+    try {
+      const detected = await detectBridgeKeyProvider(3000);
+      if (!detected.provider) {
+        if (detected.reason !== "missing") {
+          console.info(`BridgeKey was not initialized: ${detected.reason}.`);
+        }
+        return false;
+      }
+      try {
+        return await syncAuthorizedWalletSession(detected.provider);
+      } catch (error) {
+        console.warn("Could not check the existing BridgeKey authorization:", error);
+        updateWalletUI();
+        return false;
+      }
+    } finally {
+      walletInitializationPromise = null;
+    }
+  })();
+  return walletInitializationPromise;
+}
+
+/**
+ * Explicit user-triggered connection request.
+ * Invoked only after a user clicks a BridgeKey connection button.
+ */
+async function handleWalletButtonClick() {
+  if (currentAccount) {
+    // If already connected, open account details modal
+    openWalletModal();
+    return;
+  }
+
+  if (isConnecting) return; // Prevent duplicate concurrent requests
+
+  isConnecting = true;
+  const btn = $("walletBtn");
+  const btnText = $("walletBtnText");
+  const shareWalletBtn = $("shareWalletBtn");
+  const originalText = "Connect BridgeKey";
+
+  btn.classList.add("connecting");
+  btn.disabled = true;
+  btnText.textContent = "Connecting...";
+  if (shareWalletBtn) {
+    shareWalletBtn.disabled = true;
+    shareWalletBtn.textContent = "Connecting...";
+  }
+
+  try {
+    const detected = await detectBridgeKeyProvider(6000);
+    if (!detected.provider) {
+      showExtensionNotFoundModal(detected.reason);
+      return;
+    }
+
+    activateBridgeKeyProvider(detected.provider);
+    const accounts = await requestWithTimeout(activeProvider, {
+      method: "eth_requestAccounts"
+    });
+
+    if (!Array.isArray(accounts) || accounts.length === 0 ||
+        typeof accounts[0] !== "string" || !ethers.isAddress(accounts[0])) {
+      throw new Error("BridgeKey did not authorize a valid public account address.");
+    }
+
+    const provider = activeProvider;
+    const generation = ++walletSyncGeneration;
+    currentAccount = accounts[0];
+    walletReminderSuppressedAccount = null;
+    updateWalletUI();
+    try {
+      await verifyAndSyncNetwork(provider, currentAccount, generation);
+      if (activeProvider === provider && generation === walletSyncGeneration) {
+        toast(`BridgeKey connected: ${shortAddress(currentAccount)}. Network status checked.`);
+      }
+    } catch (networkError) {
+      if (activeProvider === provider && generation === walletSyncGeneration) {
+        currentChainId = null;
+        updateWalletUI();
+        toast(`Wallet authorized, but network details could not be read: ${networkError.message}`);
+      }
+    }
+    openWalletModal();
+
+  } catch (err) {
+    console.error("BridgeKey connection error:", err);
+    if (err.code === 4001 || (err.message && err.message.toLowerCase().includes("reject"))) {
+      toast("Connection cancelled in BridgeKey. Click 'Connect BridgeKey' whenever you wish to retry.");
+    } else if (err.code === 4100 || (err.message && /locked|unauthorized/i.test(err.message))) {
+      toast("BridgeKey did not authorize an account. Unlock the wallet in its extension and retry; TrustTray never asks for your password.");
+    } else {
+      toast(`Could not connect BridgeKey: ${err.message || "The wallet request failed. Retry from the button."}`);
+    }
+  } finally {
+    isConnecting = false;
+    btn.classList.remove("connecting");
+    if (shareWalletBtn) shareWalletBtn.disabled = false;
+    if (!currentAccount) {
+      btnText.textContent = originalText;
+    }
+    updateWalletUI();
+  }
+}
+
+/**
+ * Reads the selected network without changing it.
+ */
+async function verifyAndSyncNetwork(provider, expectedAccount = currentAccount, expectedGeneration = walletSyncGeneration) {
+  const chainIdHex = await requestWithTimeout(provider, { method: "eth_chainId" }, 10000);
+  if (activeProvider !== provider || currentAccount !== expectedAccount ||
+      walletSyncGeneration !== expectedGeneration) return;
+  currentChainId = parseChainId(chainIdHex);
+  if (currentChainId === MST_CHAIN_ID_DEC) {
+    initContract();
+    if (activeProvider !== provider || currentAccount !== expectedAccount ||
+        walletSyncGeneration !== expectedGeneration) return;
+    if (trustTrayContract) await syncOnChainDonations();
+  } else {
+    trustTrayContract = null;
+  }
+  if (activeProvider === provider && currentAccount === expectedAccount &&
+      walletSyncGeneration === expectedGeneration) {
+    updateWalletUI();
+  }
+}
+
+async function getConnectedSigner() {
+  const account = currentAccount;
+  const provider = activeProvider;
+  const ethersProvider = web3Provider;
+  const generation = walletSyncGeneration;
+  if (!account || !provider || !ethersProvider) {
+    throw new Error("Connect BridgeKey before requesting a blockchain transaction.");
+  }
+
+  const signer = await ethersProvider.getSigner(account);
+  const signerAddress = await signer.getAddress();
+  if (activeProvider !== provider || currentAccount !== account ||
+      walletSyncGeneration !== generation ||
+      signerAddress.toLowerCase() !== account.toLowerCase()) {
+    throw new Error("The BridgeKey account changed before the transaction could be signed. Review the active account and retry.");
+  }
+  return signer;
+}
+
+function showMstNetworkDetails() {
+  $("mstNetworkConfig").textContent =
+    `Network: ${MST_CHAIN_NAME}\nChain ID: ${MST_CHAIN_ID_DEC}\nNative currency: ${MST_CURRENCY_SYMBOL}\nRPC URL: ${MST_RPC_URL}`;
+  $("mstNetworkExplorer").href = MST_EXPLORER_URL;
+  $("mstNetworkExplorer").textContent = MST_EXPLORER_URL;
+  $("mstNetworkHelp").classList.remove("hidden");
+}
+
+// Tries to auto-switch the BridgeKey wallet to MST Testnet; falls back to manual instructions.
+async function handleSwitchNetworkClick() {
+  if (!activeProvider) { showMstNetworkDetails(); return; }
+  try {
+    await activeProvider.request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: TRUST_TRAY_CONFIG.network.chainIdHex }]
+    });
+  } catch (switchError) {
+    if (switchError.code === 4902) {
+      // Chain not yet added to wallet — try adding it
+      try {
+        await activeProvider.request({
+          method: "wallet_addEthereumChain",
+          params: [{
+            chainId: TRUST_TRAY_CONFIG.network.chainIdHex,
+            chainName: MST_CHAIN_NAME,
+            nativeCurrency: { name: MST_CURRENCY_SYMBOL, symbol: MST_CURRENCY_SYMBOL, decimals: 18 },
+            rpcUrls: [MST_RPC_URL],
+            blockExplorerUrls: [MST_EXPLORER_URL]
+          }]
+        });
+      } catch (addError) {
+        showMstNetworkDetails();
+        toast("Could not auto-add MST Testnet. Please add it manually using the details shown.");
+      }
+    } else {
+      showMstNetworkDetails();
+    }
+  }
+}
+
+function setupProviderEventListeners(provider) {
+  if (providerEventHandlers?.provider === provider) return true;
+  cleanupProviderEventListeners();
+  if (!provider || typeof provider.on !== "function" ||
+      typeof provider.removeListener !== "function") return false;
+
+  const onAccountsChanged = (accounts) => {
+    if (activeProvider !== provider || providerEventHandlers?.provider !== provider) return;
+    if (!accounts || accounts.length === 0) {
+      disconnectWallet("BridgeKey disconnected this site.", { preserveProvider: true });
+    } else {
+      if (typeof accounts[0] !== "string" || !ethers.isAddress(accounts[0])) {
+        disconnectWallet("BridgeKey provided an invalid account address.", { preserveProvider: true });
+        return;
+      }
+      walletSyncGeneration++;
+      currentAccount = accounts[0];
+      web3Provider = new ethers.BrowserProvider(provider);
+      updateWalletUI();
+      toast(`Account changed: ${shortAddress(currentAccount)}`);
+      syncAuthorizedWalletSession(provider).catch(error => {
+        console.error("Could not synchronize the changed BridgeKey account:", error);
+        toast(`BridgeKey account changed, but TrustTray could not refresh its wallet state: ${error.message}`);
+      });
+    }
+  };
+
+  const onChainChanged = async (newChainId) => {
+    if (activeProvider !== provider || providerEventHandlers?.provider !== provider) return;
+    const generation = ++walletSyncGeneration;
+    const account = currentAccount;
+    try {
+      currentChainId = parseChainId(newChainId);
+      web3Provider = new ethers.BrowserProvider(provider);
+      if (currentChainId === MST_CHAIN_ID_DEC) {
+        initContract();
+        if (activeProvider !== provider || currentAccount !== account ||
+            walletSyncGeneration !== generation) return;
+        if (trustTrayContract) await syncOnChainDonations();
+      } else {
+        trustTrayContract = null;
+      }
+    } catch (error) {
+      if (activeProvider !== provider || currentAccount !== account ||
+          walletSyncGeneration !== generation) return;
+      currentChainId = null;
+      trustTrayContract = null;
+      console.error("Invalid chainChanged event from BridgeKey:", error);
+    }
+    if (activeProvider !== provider || currentAccount !== account ||
+        walletSyncGeneration !== generation) return;
+    updateWalletUI();
+    if (currentChainId === null) {
+      toast("BridgeKey changed networks, but TrustTray could not read the new chain ID.");
+    } else {
+      toast(`Wallet network changed to chain ${currentChainId}.`);
+    }
+  };
+
+  const onDisconnect = () => {
+    if (activeProvider !== provider || providerEventHandlers?.provider !== provider) return;
+    disconnectWallet("BridgeKey disconnected.", { preserveProvider: true });
+  };
+
+  const onConnect = () => {
+    if (activeProvider !== provider || providerEventHandlers?.provider !== provider) return;
+    syncAuthorizedWalletSession(provider, { notify: true }).catch(error => {
+      console.error("Could not restore the BridgeKey session after it reconnected:", error);
+      toast(`BridgeKey reconnected, but TrustTray could not restore the wallet: ${error.message}`);
+    });
+  };
+
+  providerEventHandlers = { provider, onAccountsChanged, onChainChanged, onDisconnect, onConnect };
+  try {
+    provider.on("accountsChanged", onAccountsChanged);
+    provider.on("chainChanged", onChainChanged);
+    provider.on("disconnect", onDisconnect);
+    provider.on("connect", onConnect);
+    return true;
+  } catch (error) {
+    cleanupProviderEventListeners();
+    console.error("Could not subscribe to BridgeKey account/network changes:", error);
+    return false;
+  }
+}
+
+function cleanupProviderEventListeners() {
+  if (!providerEventHandlers) return;
+  const { provider, onAccountsChanged, onChainChanged, onDisconnect, onConnect } = providerEventHandlers;
+  if (typeof provider.removeListener === "function") {
+    try {
+      provider.removeListener("accountsChanged", onAccountsChanged);
+      provider.removeListener("chainChanged", onChainChanged);
+      provider.removeListener("disconnect", onDisconnect);
+      provider.removeListener("connect", onConnect);
+    } catch (error) {
+      console.error("Could not remove BridgeKey event listeners:", error);
+    }
+  }
+  providerEventHandlers = null;
+}
+
+function disconnectWallet(message = "Wallet disconnected from TrustTray.", { preserveProvider = false, notify = true } = {}) {
+  walletSyncGeneration++;
+  if (!preserveProvider) {
+    cleanupProviderEventListeners();
+    activeProvider = null;
+  }
+  currentAccount = null;
+  currentChainId = null;
+  web3Provider = null;
+  web3Signer = null;
+  updateWalletUI();
+  renderBlockchain();
+  toggleWalletModal(false);
+  if (notify) {
+    toast(`${message} This clears TrustTray's local view; revoke site permissions in BridgeKey if you also want to remove its authorization.`);
+  }
+}
+
+function shortAddress(addr) {
+  if (!addr) return "";
+  return addr.slice(0, 6) + "..." + addr.slice(-4);
+}
+
+function copyAddress() {
+  if (currentAccount) {
+    navigator.clipboard.writeText(currentAccount);
+    toast("Address copied to clipboard: " + shortAddress(currentAccount));
+  }
+}
+
+function updateWalletUI() {
+  syncWalletReminderLifecycle();
+  $("deploymentStatusText").textContent = contractReadinessMessage();
+  const btn = $("walletBtn");
+  const btnText = $("walletBtnText");
+  const dot = $("walletDot");
+  const addressDisp = $("connectedAddressDisplay");
+  const contractStatus = $("accountContractStatus");
+  const shareWalletBtn = $("shareWalletBtn");
+
+  if (currentAccount) {
+    btn.classList.add("connected");
+    btn.disabled = isConnecting;
+    const networkKnown = Number.isSafeInteger(currentChainId);
+    const isWrongNet = networkKnown && currentChainId !== MST_CHAIN_ID_DEC;
+    btnText.textContent = isConnecting ? "Connecting..." : "BridgeKey Connected";
+    if (shareWalletBtn) {
+      shareWalletBtn.textContent = isConnecting ? "Connecting..." : `Wallet Connected · ${shortAddress(currentAccount)}`;
+      shareWalletBtn.title = `Connected account: ${currentAccount}`;
+    }
+    btn.setAttribute("aria-label", `BridgeKey Connected: ${currentAccount}${networkKnown ? ` · Chain ID ${currentChainId}` : " · Network unavailable"}`);
+    btn.title = `BridgeKey Connected: ${currentAccount}${networkKnown ? ` · Chain ID ${currentChainId}` : " · Network unavailable"}`;
+    dot.className = isWrongNet || !networkKnown ? "wallet-status-dot warning" : "wallet-status-dot";
+    addressDisp.value = currentAccount;
+
+    if (isWrongNet) {
+      contractStatus.className = "status expired";
+      contractStatus.textContent = `Wrong network (${currentChainId})`;
+    } else if (!networkKnown) {
+      contractStatus.className = "status unverified";
+      contractStatus.textContent = "Network unavailable";
+    } else if (!trustTrayContract || !deployedBytecodeAvailable || !contractAbiReady) {
+      contractStatus.className = "status unverified";
+      contractStatus.textContent = "Contract unavailable";
+    } else if (!CONTRACT_DEPLOYMENT_CONFIRMED) {
+      contractStatus.className = "status unverified";
+      contractStatus.textContent = "Redeployment required";
+    } else {
+      contractStatus.className = "status";
+      contractStatus.textContent = "Permissionless actions enabled";
+    }
+
+    $("modalNetworkLabel").textContent = !networkKnown
+      ? "Network unavailable"
+      : currentChainId === MST_CHAIN_ID_DEC
+        ? `${MST_CHAIN_NAME} (${MST_CHAIN_ID_DEC})`
+        : `Unsupported network (chain ID ${currentChainId})`;
+    $("modalSwitchNetBtn").classList.toggle("hidden", !isWrongNet);
+    $("chainSubmitStatus").textContent = !networkKnown
+      ? `BridgeKey authorized ${shortAddress(currentAccount)}, but the active network could not be read. Contract transactions are disabled.`
+      : isWrongNet
+        ? `BridgeKey authorized ${shortAddress(currentAccount)} on unsupported chain ${currentChainId}. Switch to MST Testnet before using network features.`
+        : `BridgeKey authorized ${shortAddress(currentAccount)} on MST Testnet. ${contractReadinessMessage()}`;
+    $("publishHelpText").textContent = isWrongNet
+      ? "Switch BridgeKey to MST Testnet before publishing. No transaction will be sent on another network."
+      : CONTRACT_DEPLOYMENT_CONFIRMED
+        ? "Any connected account can publish on-chain using the permissionless contract. The wallet will request approval, and the form waits for the transaction receipt."
+        : contractReadinessMessage();
+  } else {
+    btn.classList.remove("connected");
+    btn.disabled = isConnecting;
+    btnText.textContent = isConnecting ? "Connecting..." : "Connect BridgeKey";
+    if (shareWalletBtn) {
+      shareWalletBtn.textContent = isConnecting ? "Connecting..." : "Connect BridgeKey";
+      shareWalletBtn.title = "Connect BridgeKey";
+      shareWalletBtn.disabled = isConnecting;
+    }
+    btn.title = "Connect BridgeKey";
+    btn.setAttribute("aria-label", "Connect BridgeKey");
+    dot.className = "wallet-status-dot disconnected";
+    addressDisp.value = "Not connected";
+    contractStatus.className = "status unverified";
+    contractStatus.textContent = "Disconnected";
+    $("modalNetworkLabel").textContent = "Network not checked";
+    $("modalSwitchNetBtn").classList.add("hidden");
+    $("chainSubmitStatus").textContent = `${contractReadinessMessage()} Connect BridgeKey only when you want to authorize a wallet.`;
+    $("publishHelpText").textContent = "Without an eligible connected BridgeKey account, submissions are saved only as local demo listings.";
+  }
+}
+
+function contractReadinessMessage() {
+  if (typeof ethers === "undefined") {
+    return "Ethers.js is unavailable; TrustTray contract validation cannot start.";
+  }
+  if (!contractAddress || !ethers.isAddress(contractAddress)) {
+    return "TrustTray contract address is missing or invalid.";
+  }
+  if (!contractAbiReady) {
+    return contractAbiStatus;
+  }
+  if (deploymentStatus.startsWith("MST Testnet RPC unavailable") ||
+      deploymentStatus.startsWith("MST Testnet RPC returned an unexpected") ||
+      deploymentStatus.startsWith("No deployed bytecode") ||
+      deploymentStatus.startsWith("TrustTray ABI calls failed")) {
+    return deploymentStatus;
+  }
+  return deploymentStatus;
+}
+
+async function loadTrustTrayAbi() {
+  contractAbiReady = false;
+  contractAbiStatus = "Loading the compiled TrustTray ABI...";
+  try {
+    const response = await fetch(TRUST_TRAY_CONFIG.abiPath, { cache: "no-cache" });
+    if (!response.ok) {
+      throw new Error(`ABI request failed with HTTP ${response.status}.`);
+    }
+
+    const abi = await response.json();
+    if (!Array.isArray(abi) || abi.length === 0) {
+      throw new Error("The ABI file must contain a non-empty JSON array.");
+    }
+
+    const contractInterface = new ethers.Interface(abi);
+    const requiredFunctions = [
+      "nextDonationId()",
+      "getDonation(uint256)",
+      "donations(uint256)",
+      "getAllDonations()",
+      "createDonation(string,string,uint256,string,uint256,uint256)",
+      "claimDonation(uint256)",
+      "confirmPickup(uint256)",
+      "cancelDonation(uint256)"
+    ];
+    const requiredEvents = [
+      "DonationCreated(uint256,address,string,uint256)",
+      "DonationClaimed(uint256,address)",
+      "DonationCancelled(uint256)",
+      "PickupConfirmed(uint256,address)",
+      "DonationCompleted(uint256)"
+    ];
+    const missingFunctions = requiredFunctions.filter(signature =>
+      !contractInterface.getFunction(signature)
+    );
+    if (missingFunctions.length > 0) {
+      throw new Error(`The supplied ABI is missing required functions: ${missingFunctions.join(", ")}.`);
+    }
+    const missingEvents = requiredEvents.filter(signature =>
+      !contractInterface.getEvent(signature)
+    );
+    if (missingEvents.length > 0) {
+      throw new Error(`The compiled ABI is missing required lifecycle events: ${missingEvents.join(", ")}.`);
+    }
+    TRUST_TRAY_ABI = abi;
+    contractAbiReady = true;
+    contractAbiStatus = `Compiled permissionless TrustTray ABI loaded (${abi.length} entries).`;
+  } catch (error) {
+    contractAbiStatus = `TrustTray ABI unavailable or invalid: ${error.message || "Could not load the ABI file."}`;
+    console.error("Could not load the supplied TrustTray ABI:", error);
+  }
+  $("deploymentStatusText").textContent = contractAbiStatus;
+  updateWalletUI();
+  return contractAbiReady;
+}
+
+async function verifyContractDeployment() {
+  deployedBytecodeAvailable = false;
+  trustTrayContract = null;
+
+  if (typeof ethers === "undefined") {
+    deploymentStatus = "Ethers.js is unavailable; TrustTray contract validation cannot start.";
+    updateWalletUI();
+    return;
+  }
+  if (!contractAbiReady) {
+    deploymentStatus = contractAbiStatus;
+    updateWalletUI();
+    return;
+  }
+  if (!contractAddress || !ethers.isAddress(contractAddress)) {
+    deploymentStatus = "TrustTray contract address is missing or invalid.";
+    updateWalletUI();
+    return;
+  }
+
+  try {
+    readOnlyProvider = new ethers.JsonRpcProvider(MST_RPC_URL, {
+      name: MST_CHAIN_NAME,
+      chainId: MST_CHAIN_ID_DEC
+    });
+    const network = await readOnlyProvider.getNetwork();
+    if (Number(network.chainId) !== MST_CHAIN_ID_DEC) {
+      deploymentStatus = `MST Testnet RPC returned an unexpected chain ID (${network.chainId}).`;
+      updateWalletUI();
+      return;
+    }
+
+    const bytecode = await readOnlyProvider.getCode(contractAddress);
+    if (bytecode === "0x") {
+      deploymentStatus = "No deployed bytecode exists at the configured address on MST Testnet.";
+      updateWalletUI();
+      return;
+    }
+
+    deployedBytecodeAvailable = true;
+    initContract();
+    if (!trustTrayContract) {
+      throw new Error("Could not initialize the contract using the supplied ABI.");
+    }
+
+    const nextDonationId = await trustTrayContract.nextDonationId();
+    if (BigInt(nextDonationId) < 1n) {
+      throw new Error("The contract returned an invalid next donation ID.");
+    }
+    deploymentStatus = CONTRACT_DEPLOYMENT_CONFIRMED
+      ? `${MST_CHAIN_NAME} deployment verified with the compiled permissionless ABI.`
+      : `${MST_CHAIN_NAME} contract is available for reads. Writes are disabled until the updated contract is redeployed and its address verified.`;
+    await syncOnChainDonations();
+  } catch (error) {
+    trustTrayContract = null;
+    deploymentStatus = `TrustTray ABI calls failed at the configured deployment: ${error.message || "Could not verify the contract interface."}`;
+    console.error("Could not verify TrustTray contract calls:", error);
+  }
+  $("deploymentStatusText").textContent = contractReadinessMessage();
+  updateWalletUI();
+}
+
+async function canUseTrustTrayContract() {
+  if (!currentAccount || !activeProvider) {
+    toast("Connect BridgeKey before requesting a blockchain transaction.");
+    return false;
+  }
+  if (!CONTRACT_DEPLOYMENT_CONFIRMED) {
+    toast("TrustTray writes are disabled until the permissionless contract is redeployed and its address verified. No transaction was sent.");
+    return false;
+  }
+  const account = currentAccount;
+  const provider = activeProvider;
+  const generation = walletSyncGeneration;
+
+  try {
+    const chainIdHex = await requestWithTimeout(provider, { method: "eth_chainId" }, 10000);
+    if (activeProvider !== provider || currentAccount !== account ||
+        walletSyncGeneration !== generation) {
+      toast("The BridgeKey account changed. Review the active account and retry.");
+      return false;
+    }
+    currentChainId = parseChainId(chainIdHex);
+  } catch (error) {
+    if (activeProvider !== provider || currentAccount !== account ||
+        walletSyncGeneration !== generation) {
+      toast("The BridgeKey account or network changed. Review it and retry.");
+      return false;
+    }
+    currentChainId = null;
+    trustTrayContract = null;
+    updateWalletUI();
+    toast(`Could not verify the active wallet network: ${error.message}. No transaction was sent.`);
+    return false;
+  }
+
+  if (currentChainId === MST_CHAIN_ID_DEC) initContract();
+  updateWalletUI();
+
+  if (currentChainId !== MST_CHAIN_ID_DEC) {
+    toast("Select MST Testnet before requesting a TrustTray contract transaction. No transaction was sent.");
+    return false;
+  }
+  if (!trustTrayContract || !deployedBytecodeAvailable || !contractAbiReady) {
+    toast(`TrustTray contract actions are disabled: ${contractReadinessMessage()} No transaction was sent.`);
+    return false;
+  }
+  return true;
+}
+
+async function openWalletModal() {
+  if (!currentAccount) return;
+  const account = currentAccount;
+  const chainId = currentChainId;
+  $("modalAccount").textContent = account;
+  $("modalBalance").textContent = chainId === MST_CHAIN_ID_DEC
+    ? "Loading..."
+    : "Available only on MST Testnet";
+
+  $("modalContractStatus").textContent = !trustTrayContract
+    ? "Contract unavailable"
+    : CONTRACT_DEPLOYMENT_CONFIRMED
+      ? "Permissionless actions enabled"
+      : "Read-only until redeployment";
+  if (currentAccount !== account) return;
+  toggleWalletModal(true);
+
+  if (!activeProvider || chainId !== MST_CHAIN_ID_DEC) return;
+  try {
+    const balanceHex = await requestWithTimeout(activeProvider, {
+      method: "eth_getBalance",
+      params: [account, "latest"]
+    }, 10000);
+    if (typeof balanceHex !== "string" || !/^0x[0-9a-f]+$/i.test(balanceHex)) {
+      throw new Error("BridgeKey returned an invalid balance.");
+    }
+    if (currentAccount === account && currentChainId === chainId) {
+      $("modalBalance").textContent = `${Number(ethers.formatEther(BigInt(balanceHex))).toFixed(4)} ${MST_CURRENCY_SYMBOL}`;
+    }
+  } catch (error) {
+    console.error("Could not read BridgeKey balance:", error);
+    if (currentAccount === account && currentChainId === chainId) {
+      $("modalBalance").textContent = "Unavailable";
+    }
+  }
+}
+
+function toggleWalletModal(open) {
+  $("walletModal").classList.toggle("open", open);
+}
+
+/**
+ * Displays helpful, context-aware instructions when BridgeKey is not detected
+ */
+function showExtensionNotFoundModal(reason) {
+  const isFileProtocol = window.location.protocol === "file:";
+  const msgEl = $("extNotFoundMessage");
+  const boxEl = $("extInstructionsBox");
+
+  if (reason === "unsupported_api") {
+    msgEl.textContent = "BridgeKey announced a wallet, but it does not expose the EIP-1193 request and event interface TrustTray needs.";
+    boxEl.innerHTML = `
+      <strong>Connection cannot continue safely:</strong>
+      <p style="margin:6px 0">BridgeKey's public developer material does not document an alternate browser provider or SDK. TrustTray will not guess another API.</p>
+      <p style="margin:6px 0">Ask BridgeKey support for its official dApp provider documentation, then retry after the supported integration is available.</p>
+    `;
+  } else if (reason === "unidentified") {
+    msgEl.textContent = "A wallet provider is present, but it did not identify itself as BridgeKey using the standard wallet discovery interface. TrustTray will not connect to a different or unidentified wallet.";
+    boxEl.innerHTML = `
+      <strong>What to do:</strong>
+      <ol style="margin:6px 0 0;padding-left:18px">
+        <li>Confirm BridgeKey is installed, enabled, and pinned in Chrome.</li>
+        <li>Open BridgeKey once, unlock it in the extension, then return and retry.</li>
+        <li>If it still does not appear, BridgeKey's public support material does not specify its page-provider API. Ask <a href="https://bridgekey.io/support" target="_blank" rel="noopener noreferrer">BridgeKey support</a> for its documented dApp connection method; do not connect an unidentified wallet.</li>
+      </ol>
+    `;
+  } else if (reason === "ambiguous") {
+    msgEl.textContent = "More than one provider announced itself as BridgeKey. TrustTray cannot safely choose between them.";
+    boxEl.innerHTML = `
+      <strong>What to do:</strong>
+      <ol style="margin:6px 0 0;padding-left:18px">
+        <li>Disable any duplicate or test wallet extension that identifies itself as BridgeKey.</li>
+        <li>Return to TrustTray and click <b>Connect BridgeKey</b> again.</li>
+      </ol>
+    `;
+  } else if (isFileProtocol) {
+    msgEl.textContent = "This page is opened as a local file. Chrome extensions may not expose wallet providers to file:// pages.";
+    boxEl.innerHTML = `
+      <strong>What to do:</strong>
+      <ol style="margin:6px 0 0;padding-left:18px">
+        <li>Open TrustTray through a local HTTP server or an HTTPS website instead of double-clicking the HTML file.</li>
+        <li>Confirm BridgeKey is installed and enabled in Chrome.</li>
+        <li>Return to TrustTray and click <b>Connect BridgeKey</b> again.</li>
+      </ol>
+    `;
+  } else {
+    msgEl.textContent = "No BridgeKey wallet provider was detected by the webpage. This does not prove that the extension is absent; it may be disabled, unavailable on this page, or using an undocumented connection API.";
+    boxEl.innerHTML = `
+      <strong>What to do:</strong>
+      <ol style="margin:6px 0 0;padding-left:18px">
+        <li>Install BridgeKey from its official Chrome Web Store listing if needed.</li>
+        <li>Create or import your wallet inside the extension, then unlock it there. Never enter a wallet password or recovery phrase on TrustTray.</li>
+        <li>Pin BridgeKey to the browser toolbar, return to this page, and click <b>Connect BridgeKey</b> again.</li>
+        <li>If BridgeKey is already installed but remains undetected, ask <a href="https://bridgekey.io/support" target="_blank" rel="noopener noreferrer">BridgeKey support</a> for the official browser dApp provider documentation.</li>
+      </ol>
+    `;
+  }
+
+  $("extNotFoundModal").classList.add("open");
+}
+
+function toggleExtNotFoundModal(open) {
+  $("extNotFoundModal").classList.toggle("open", open);
+}
+
+function retryConnection() {
+  toggleExtNotFoundModal(false);
+  handleWalletButtonClick();
+}
+
+/* ==========================================================================
+   5. SMART CONTRACT INTERACTION (TrustTray.sol)
+   ========================================================================== */
+function initContract() {
+  trustTrayContract = null;
+  if (!contractAddress || !readOnlyProvider || !deployedBytecodeAvailable ||
+      !contractAbiReady || TRUST_TRAY_ABI.length === 0 || typeof ethers === "undefined") return;
+
+  try {
+    trustTrayContract = new ethers.Contract(contractAddress, TRUST_TRAY_ABI, readOnlyProvider);
+  } catch (err) {
+    trustTrayContract = null;
+    console.error("Contract initialization failed:", err);
+  }
+}
+
+function saveContractAddress() {
+  const input = $("contractAddressInput");
+  const val = (input ? input.value : "").trim();
+  if (!val || !ethers.isAddress(val)) {
+    toast("Please enter a valid Ethereum address.");
+    return;
+  }
+  contractAddress = val;
+  localStorage.setItem("ttContractAddress", val);
+  toast("Contract address saved. Verifying deployment…");
+  initContract();
+  verifyContractDeployment();
+}
+
+// Deploy the compiled permissionless TrustTray contract via BridgeKey signer
+async function deployPermissionlessContract() {
+  if (!currentAccount || !activeProvider) {
+    toast("Connect your BridgeKey wallet first.");
+    return;
+  }
+  if (typeof TRUST_TRAY_BYTECODE === "undefined" || !TRUST_TRAY_BYTECODE) {
+    toast("Contract bytecode not found. Cannot deploy.");
+    return;
+  }
+  const btn = $("btnDeployContract");
+  if (btn) { btn.disabled = true; btn.textContent = "Deploying…"; }
+  try {
+    toast("Requesting BridgeKey approval to deploy TrustTray contract…");
+    const signer = await getConnectedSigner();
+    const factory = new ethers.ContractFactory(TRUST_TRAY_ABI, TRUST_TRAY_BYTECODE, signer);
+    const contract = await factory.deploy();
+    toast("Deployment transaction sent. Waiting for confirmation…");
+    await contract.waitForDeployment();
+    const deployedAddr = await contract.getAddress();
+    contractAddress = deployedAddr;
+    localStorage.setItem("ttContractAddress", deployedAddr);
+    const inp = $("contractAddressInput");
+    if (inp) inp.value = deployedAddr;
+    toast(`✅ TrustTray deployed at ${deployedAddr}`);
+    initContract();
+    await verifyContractDeployment();
+  } catch (err) {
+    console.error("Deploy error:", err);
+    toast("Deployment failed: " + (err.reason || err.message || String(err)));
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = "⛓ Deploy Permissionless Contract"; }
+  }
+}
+
+// Reset contract address to the default configured address
+function resetToDefaultContract() {
+  contractAddress = TRUST_TRAY_CONFIG.defaultContractAddress;
+  localStorage.removeItem("ttContractAddress");
+  const inp = $("contractAddressInput");
+  if (inp) inp.value = contractAddress;
+  toast("Reset to default contract address.");
+  initContract();
+  verifyContractDeployment();
+}
+
+// Synchronize On-Chain Donations from Contract
+async function syncOnChainDonations() {
+  if (!trustTrayContract) {
+    onChainDonations = [];
+    $("chainVerifiedCount").textContent = "0";
+    $("foodPacksDistributed").textContent = "0";
+    $("completedRecipientCount").textContent = "0";
+    renderBlockchain();
+    return false;
+  }
+
+  try {
+    let rawDonations = [];
+
+    // Prefer getAllDonations() (single call) if the ABI supports it
+    const hasGetAll = typeof trustTrayContract.getAllDonations === "function";
+    if (hasGetAll) {
+      rawDonations = Array.from(await trustTrayContract.getAllDonations());
+    } else {
+      // Fallback: iterate getDonation(i) for each id
+      const nextId = await trustTrayContract.nextDonationId();
+      const lastDonationId = BigInt(nextId) - 1n;
+      if (lastDonationId > BigInt(Number.MAX_SAFE_INTEGER)) {
+        throw new Error("Donation ID exceeds the safe display range.");
+      }
+      for (let i = 1; i <= Number(lastDonationId); i++) {
+        rawDonations.push(await trustTrayContract.getDonation(i));
+      }
+    }
+
+    const freshDonations = [];
+    for (const d of rawDonations) {
+      const statusNum = Number(d.status);
+      const statusName = ON_CHAIN_STATUS_NAMES[statusNum] || "Unknown";
+      const quantity = Number(d.quantity);
+      if (!Number.isSafeInteger(quantity)) {
+        throw new Error(`Donation #${d.id} quantity exceeds the safe display range.`);
+      }
+      const descriptionParts = String(d.description || "").split(" · ");
+      const cat = ["Meals", "Snacks", "Bakery", "Fruits & Vegetables"].includes(descriptionParts[0])
+        ? descriptionParts[0]
+        : "Meals";
+      const diet = ["Vegetarian", "Non-Vegetarian"].includes(descriptionParts[1])
+        ? descriptionParts[1]
+        : "Vegetarian";
+
+      // Check if this item is past its deadline/expiry — still show it (greyed out),
+      // but the card button will be disabled in card().
+      const onChainItem = {
+        id: `TT-CHAIN-${d.id.toString()}`,
+        chainDonationId: Number(d.id),
+        name: d.foodName,
+        category: cat,
+        diet,
+        quantity,
+        unit: "portions",
+        location: d.pickupLocation,
+        donor: shortAddress(d.donor),
+        donorAddress: d.donor,
+        claimedBy: d.claimedBy,
+        deadline: new Date(Number(d.pickupDeadline) * 1000).toISOString(),
+        expiryTime: Number(d.expiryTime),
+        pickupDeadline: Number(d.pickupDeadline),
+        image: IMG.meals,
+        notes: descriptionParts.slice(2).join(" · ") || "No additional off-chain notes.",
+        status: statusName,
+        donorConfirmed: d.donorConfirmed,
+        claimantConfirmed: d.claimantConfirmed,
+        isOnChain: true
+      };
+      freshDonations.push(onChainItem);
+    }
+
+    onChainDonations = freshDonations;
+
+    // Rebuild foods: always seed items first, then prepend on-chain items
+    foods = seed.map(s => ({...s}));
+    for (const item of freshDonations) {
+      foods.unshift(item);
+    }
+
+    // Rebuild donations (My Donations): items belonging to connected wallet
+    donations = donations.filter(item => !item.isOnChain);
+    for (const item of freshDonations) {
+      if (currentAccount && (
+        item.donorAddress.toLowerCase() === currentAccount.toLowerCase() ||
+        (item.claimedBy && item.claimedBy.toLowerCase() !== "0x0000000000000000000000000000000000000000" &&
+          item.claimedBy.toLowerCase() === currentAccount.toLowerCase())
+      )) {
+        donations.push(item);
+      }
+    }
+
+    $("chainVerifiedCount").textContent = freshDonations.length;
+    const distributed = freshDonations
+      .filter(item => item.status === "Completed")
+      .reduce((total, item) => total + item.quantity, 0);
+    $("foodPacksDistributed").textContent = String(distributed);
+    const zeroAddress = "0x0000000000000000000000000000000000000000";
+    const completedRecipients = new Set(freshDonations
+      .filter(item => item.status === "Completed" && item.claimedBy &&
+        item.claimedBy.toLowerCase() !== zeroAddress)
+      .map(item => item.claimedBy.toLowerCase()));
+    $("completedRecipientCount").textContent = String(completedRecipients.size);
+    save();
+    renderFoods();
+    renderDonations();
+    renderBlockchain();
+    return true;
+  } catch (err) {
+    console.error("Could not refresh on-chain donations:", err);
+    onChainDonations = [];
+    // Restore foods to seed only on error
+    foods = seed.map(s => ({...s}));
+    donations = donations.filter(item => !item.isOnChain);
+    $("chainVerifiedCount").textContent = "0";
+    $("foodPacksDistributed").textContent = "0";
+    $("completedRecipientCount").textContent = "0";
+    $("chainSubmitStatus").textContent = `Could not read TrustTray donation records from MST Testnet: ${err.message || "unknown RPC or contract error"}.`;
+    save();
+    renderFoods();
+    renderDonations();
+    renderBlockchain();
+    toast("Could not refresh TrustTray donation records. See the status message for details.");
+    return false;
+  }
+}
+
+function recordConfirmedTransaction(donationId, foodName, action, txHash) {
+  records = records.filter(record => record.txHash !== txHash);
+  records.unshift({
+    id: `TT-CHAIN-${txHash}`,
+    chainDonationId: String(donationId),
+    food: foodName,
+    event: action,
+    time: new Date().toISOString(),
+    status: `Confirmed on ${MST_CHAIN_NAME}`,
+    txHash,
+    isOnChain: true
+  });
+  save();
+  renderBlockchain();
+}
+
+function getCreatedDonationId(receipt) {
+  const eventTopic = trustTrayContract.interface.getEvent("DonationCreated").topicHash;
+  const eventLog = receipt.logs.find(log =>
+    log.address.toLowerCase() === contractAddress.toLowerCase() &&
+    log.topics[0] === eventTopic
+  );
+  if (!eventLog) return null;
+  return trustTrayContract.interface.parseLog(eventLog)?.args.id.toString() || null;
+}
+
+// On-Chain Action: Claim Donation (Reserve via BridgeKey)
+async function claimDonationOnChain(chainDonationId) {
+  return submitDonationAction(chainDonationId, "Claim", contract =>
+    contract.claimDonation(chainDonationId)
+  );
+}
+
+// On-Chain Action: Confirm Pickup (Dual Confirmation)
+async function confirmPickupOnChain(chainDonationId) {
+  return submitDonationAction(chainDonationId, "Pickup confirmation", contract =>
+    contract.confirmPickup(chainDonationId)
+  );
+}
+
+// On-Chain Action: Cancel Donation
+async function cancelDonationOnChain(chainDonationId) {
+  return submitDonationAction(chainDonationId, "Cancel", contract =>
+    contract.cancelDonation(chainDonationId)
+  );
+}
+
+async function submitDonationAction(chainDonationId, actionName, sendTransaction) {
+  const key = String(chainDonationId);
+  if (activeDonationTransactions.has(key)) {
+    toast(`A transaction for donation #${chainDonationId} is already pending.`);
+    return false;
+  }
+  activeDonationTransactions.add(key);
+  renderFoods();
+  renderDonations();
+  let transactionTrackingStarted = false;
+  let transactionBroadcast = false;
+  let transactionOutcome = "unknown";
+  try {
+    if (!await canUseTrustTrayContract()) return false;
+    const donation = await trustTrayContract.getDonation(chainDonationId);
+    const status = Number(donation.status);
+    const donor = String(donation.donor).toLowerCase();
+    const claimant = String(donation.claimedBy).toLowerCase();
+    const account = currentAccount.toLowerCase();
+    const now = BigInt(Math.floor(Date.now() / 1000));
+
+    if (actionName === "Claim") {
+      if (status !== 0) {
+        toast("This donation is no longer available to claim.");
+        return false;
+      }
+      if (donor === account) {
+        toast("Donors cannot claim their own donations.");
+        return false;
+      }
+      if (BigInt(donation.expiryTime) <= now || BigInt(donation.pickupDeadline) <= now) {
+        toast("This donation has expired or passed its pickup deadline.");
+        return false;
+      }
+    } else if (actionName === "Cancel") {
+      if (status !== 0 || donor !== account) {
+        toast("Only the donor can cancel an available donation.");
+        return false;
+      }
+    } else if (actionName === "Pickup confirmation") {
+      if (status !== 1 || (donor !== account && claimant !== account)) {
+        toast("Only the donor or claimant can confirm pickup for a claimed donation.");
+        return false;
+      }
+      if ((donor === account && donation.donorConfirmed) ||
+          (claimant === account && donation.claimantConfirmed)) {
+        toast("This account has already confirmed its side of pickup.");
+        return false;
+      }
+    }
+
+    toast(`Confirm ${actionName.toLowerCase()} of donation #${chainDonationId} in BridgeKey.`);
+    const signer = await getConnectedSigner();
+    const contractWithSigner = trustTrayContract.connect(signer);
+    beginBlockchainConfirmation();
+    transactionTrackingStarted = true;
+    const tx = await sendTransaction(contractWithSigner);
+    transactionBroadcast = true;
+    toast(`Transaction ${shortAddress(tx.hash)} submitted. Waiting for confirmation...`);
+    const receipt = await tx.wait();
+    if (!receipt) {
+      throw new Error("The transaction receipt could not be read.");
+    }
+    if (Number(receipt.status) !== 1) {
+      transactionOutcome = "failed";
+      throw new Error("The transaction was mined but did not succeed.");
+    }
+    transactionOutcome = "success";
+    recordConfirmedTransaction(
+      chainDonationId,
+      donation.foodName || `Donation #${chainDonationId}`,
+      actionName,
+      receipt.hash
+    );
+    const refreshed = await syncOnChainDonations();
+    toast(refreshed
+      ? `${actionName} confirmed on MST Testnet. Transaction: ${shortAddress(receipt.hash)}`
+      : `${actionName} transaction confirmed (${shortAddress(receipt.hash)}), but the donation list could not be refreshed.`);
+    return true;
+  } catch (err) {
+    if (transactionBroadcast) transactionOutcome = getConfirmedFailureOutcome(err);
+    console.error(`${actionName} donation failed:`, err);
+    toast(err.code === 4001
+      ? `${actionName} request rejected in BridgeKey. No transaction was confirmed.`
+      : `${actionName} failed: ${err.reason || err.message || "unknown transaction error"}`);
+    return false;
+  } finally {
+    if (transactionBroadcast) {
+      finishBlockchainConfirmation(actionName, transactionOutcome);
+    } else if (transactionTrackingStarted) {
+      cancelBlockchainConfirmation();
+    }
+    activeDonationTransactions.delete(key);
+    renderFoods();
+    renderDonations();
+  }
+}
+
+/* ==========================================================================
+   6. NAVIGATION & PAGE HANDLING
+   ========================================================================== */
+function page(name){
+  document.querySelectorAll(".page").forEach(p => {
+    p.classList.toggle("active", p.id === "page-" + name);
+  });
+  document.querySelectorAll(".navbtn").forEach(b => {
+    b.classList.toggle("active", b.dataset.page === name);
+  });
+  $("nav").classList.remove("open");
+
+  if(name === "available") renderFoods();
+  if(name === "donations") renderDonations();
+  if(name === "cart") renderCart();
+  if(name === "blockchain") renderBlockchain();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+document.querySelectorAll(".navbtn").forEach(b => {
+  b.onclick = () => page(b.dataset.page);
+});
+
+function date(s){
+  if(!s) return "Not set";
+  let d = new Date(s);
+  return isNaN(d) ? s : d.toLocaleString([], {
+    day:"numeric", month:"short", hour:"numeric", minute:"2-digit"
+  });
+}
+
+function isExpiring(f){
+  return f.expiring || (f.deadline && new Date(f.deadline) - Date.now() < 3*60*60*1000);
+}
+
+/* ==========================================================================
+   7. FOOD CARD & AVAILABLE FOOD SECTION
+   ========================================================================== */
+function card(f){
+  const onChainBadge = f.isOnChain ? `<span class="badge onchain">⛓ #${f.chainDonationId} On-Chain</span>` : "";
+  const pending = f.isOnChain && activeDonationTransactions.has(String(f.chainDonationId));
+  const isDonor = f.isOnChain && currentAccount && f.donorAddress &&
+    f.donorAddress.toLowerCase() === currentAccount.toLowerCase();
+  const deadlinePassed = f.isOnChain &&
+    (Number(f.expiryTime) <= Date.now() / 1000 || Number(f.pickupDeadline) <= Date.now() / 1000);
+  const action = f.isOnChain
+    ? `<button class="btn primary reserve" ${pending || isDonor || deadlinePassed || f.status !== "Available" ? "disabled" : ""} ${pending || isDonor || deadlinePassed || f.status !== "Available" ? "" : `onclick="addCartOnChain('${esc(f.id)}',${f.chainDonationId})"`}>${pending ? "Claim pending..." : isDonor ? "Your donation" : deadlinePassed ? "Deadline passed" : f.status !== "Available" ? f.status : "🛒 Reserve Food →"}</button>`
+    : `<button class="btn primary reserve" onclick="addCart('${esc(f.id)}')">🛒 Reserve Food →</button>`;
+  return `<article class="food-card">
+    <div class="food-img">
+      <img loading="lazy" src="${esc(f.image || IMG.meals)}" alt="${esc(f.name)}" onerror="this.src='${IMG.meals}'">
+      <span class="badge ${isExpiring(f) ? "expiring" : ""}">${isExpiring(f) ? "Expiring Soon" : "Available Now"}</span>
+      ${onChainBadge}
+    </div>
+    <div class="food-body">
+      <div class="food-title">
+        <h3>${esc(f.name)}</h3>
+        <span class="diet ${f.diet === "Non-Vegetarian" ? "nonveg" : ""}">${f.diet === "Non-Vegetarian" ? "🍗 Non-Veg" : "🌿 Veg"}</span>
+      </div>
+      <p class="quantity"><b>${esc(f.quantity)}</b> ${esc(f.unit || "portions")} available</p>
+      <div class="meta">
+        <span>📍 ${esc(f.location)}</span>
+        <span>◷ Pickup before ${esc(date(f.deadline))}</span>
+        ${f.isOnChain ? `<span>◷ Food expiry ${esc(date(Number(f.expiryTime) * 1000))}</span>` : ""}
+        <span>♙ ${esc(f.donor)}</span>
+        ${f.isOnChain ? `<span class="note">Image illustrative; not stored on-chain.</span>` : ""}
+      </div>
+      ${action}
+    </div>
+  </article>`;
+}
+
+function renderFoods(){
+  let q = $("search").value.toLowerCase().trim();
+  let loc = $("location").value.toLowerCase().trim();
+  let veg = $("veg").checked;
+  let non = $("nonveg").checked;
+  let exp = $("expiring").checked;
+
+  // On-chain items: only show Available (not Claimed/Completed/Cancelled)
+  // Demo seed items: show unless manually removed from cart/donated
+  let list = foods.filter(f => {
+    if (f.isOnChain) {
+      return f.status === "Available";   // on-chain truth is the source
+    }
+    return f.status !== "Reserved" && f.status !== "Claimed" && f.status !== "Completed" && Number(f.quantity) > 0;
+  });
+  list = list.filter(f => category === "All" || f.category === category || f.diet === category);
+  list = list.filter(f => !q || [f.name, f.location, f.donor, f.category].join(" ").toLowerCase().includes(q));
+  list = list.filter(f => (!veg && !non) || (veg && f.diet === "Vegetarian") || (non && f.diet === "Non-Vegetarian"));
+  list = list.filter(f => !exp || isExpiring(f));
+  list = list.filter(f => !loc || f.location.toLowerCase().includes(loc));
+
+  if($("sort").value === "name") list.sort((a,b) => a.name.localeCompare(b.name));
+  if($("sort").value === "quantity") list.sort((a,b) => Number(b.quantity) - Number(a.quantity));
+  // Always show on-chain items at the top
+  list.sort((a, b) => (b.isOnChain ? 1 : 0) - (a.isOnChain ? 1 : 0));
+
+  $("foodGrid").innerHTML = list.map(card).join("");
+  $("resultCount").textContent = "(" + list.length + ")";
+  $("listingCount").textContent = list.length;
+  $("noFood").classList.toggle("hidden", list.length > 0);
+  $("foodGrid").classList.toggle("hidden", list.length === 0);
+}
+
+function chooseCategory(c){
+  category = c;
+  document.querySelectorAll("[data-cat]").forEach(b => b.classList.toggle("selected", b.dataset.cat === c));
+  document.querySelectorAll("[data-filter]").forEach(b => b.classList.toggle("active", b.dataset.filter === c));
+  renderFoods();
+}
+
+document.querySelectorAll("[data-cat]").forEach(b => b.onclick = () => chooseCategory(b.dataset.cat));
+document.querySelectorAll("[data-filter]").forEach(b => b.onclick = () => chooseCategory(b.dataset.filter));
+
+["search","location","veg","nonveg","expiring","sort"].forEach(id => {
+  $(id).addEventListener("input", renderFoods);
+});
+
+function clearFilters(){
+  $("search").value = "";
+  $("location").value = "";
+  $("veg").checked = false;
+  $("nonveg").checked = false;
+  $("expiring").checked = false;
+  chooseCategory("All");
+}
+
+/* ==========================================================================
+   8. FOOD CART & CLAIMING
+   ========================================================================== */
+function addCart(id){
+  if(cart.some(c => c.id === id)){
+    toast("Already in your cart.");
+    page("cart");
+    return;
+  }
+  cart.push({ id, quantity: 1 });
+  save();
+  renderCartCount();
+  toast("Added to Food Cart!");
+}
+
+// Add an on-chain donation to cart (stores chainDonationId so cart can claim on-chain)
+function addCartOnChain(id, chainDonationId){
+  if(cart.some(c => c.id === id)){
+    toast("Already in your cart.");
+    page("cart");
+    return;
+  }
+  cart.push({ id, quantity: 1, chainDonationId, isOnChain: true });
+  save();
+  renderCartCount();
+  page("cart");
+  toast("On-chain donation added to cart. Click 'Confirm Reservation with BridgeKey' to claim it on blockchain.");
+}
+
+function renderCartCount(){
+  $("cartCount").textContent = cart.length;
+}
+
+function renderCart(){
+  let items = cart.map(c => ({ c, f: foods.find(f => f.id === c.id) })).filter(x => x.f);
+  $("cartPill").textContent = items.length + " item(s)";
+  $("cartEmpty").classList.toggle("hidden", items.length > 0);
+  $("confirmReservation").classList.toggle("hidden", items.length === 0);
+
+  const hasOnChain   = items.some(({c}) => c.isOnChain);
+  const hasReserved  = items.some(({c}) => cartItemStates[c.id] === "reserved");
+  const hasPending   = items.some(({c}) => cartItemStates[c.id] === "pending");
+  const confirmBtn   = $("confirmReservation");
+  const cartNote     = $("cartNote");
+
+  // All reserved — hide confirm button
+  if (items.length > 0 && items.every(({c}) => cartItemStates[c.id] === "reserved")) {
+    confirmBtn.classList.add("hidden");
+  } else {
+    confirmBtn.classList.remove("hidden");
+  }
+
+  if (hasOnChain) {
+    confirmBtn.textContent = hasPending
+      ? "⛓ Submitting to blockchain…"
+      : "⛓ Confirm Reservation with BridgeKey";
+    confirmBtn.disabled = hasPending;
+    if (cartNote) cartNote.textContent = "On-chain items will trigger a BridgeKey wallet transaction. No transaction is sent until you approve.";
+  } else {
+    confirmBtn.textContent = "🛒 Confirm Reservation";
+    confirmBtn.disabled = false;
+    if (cartNote) cartNote.textContent = "Demo reservations only. Add real on-chain food items to send a blockchain transaction.";
+  }
+
+  // Status label map for cart items
+  const stateLabel = { awaiting: "⏳ Awaiting Reservation", pending: "⏳ Reservation Pending…", reserved: "✅ Reserved", failed: "❌ Reservation Failed" };
+  const stateColor = { awaiting: "#888", pending: "#b45309", reserved: "#2e7d32", failed: "#b91c1c" };
+
+  $("cartItems").innerHTML = items.map(({c, f}) => {
+    const state = cartItemStates[c.id] || (c.isOnChain ? "awaiting" : null);
+    const statusBadge = c.isOnChain && state
+      ? `<span style="font-size:11px;color:${stateColor[state]};font-weight:600">${stateLabel[state] || state}</span>`
+      : '';
+    return `
+    <div class="cart-item">
+      <img src="${esc(f.image || IMG.meals)}" alt="${esc(f.name)}">
+      <div>
+        <h3>${esc(f.name)} ${c.isOnChain ? `<span class="status onchain-tag" style="font-size:9px">⛓ On-Chain #${c.chainDonationId}</span>` : '<span style="font-size:9px;color:#888">Demo</span>'}</h3>
+        <p>${esc(f.location)} · ${esc(f.quantity)} ${esc(f.unit || "portions")} available</p>
+        ${statusBadge}
+        ${c.isOnChain && state === "reserved" ? `<p style="color:#2e7d32;font-size:12px;margin:4px 0">✅ Blockchain reservation confirmed. Check My Donations for pickup details.</p>` : ''}
+        ${c.isOnChain && state !== "reserved" ? '<p style="color:#2e7d32;font-size:12px;margin:4px 0">⛓ Claim via BridgeKey blockchain transaction</p>' : ''}
+        ${!c.isOnChain ? `
+        <label class="note">Quantity
+          <input type="number" min="1" max="${Number(f.quantity)}" value="${Number(c.quantity)}" onchange="setQuantity('${esc(f.id)}',this.value)">
+        </label>` : ''}
+      </div>
+      ${state !== "reserved" ? `<button class="remove" onclick="removeCart('${esc(f.id)}')">Remove</button>` : ''}
+    </div>
+  `}).join("");
+}
+
+function setQuantity(id, value){
+  let f = foods.find(f => f.id === id);
+  let c = cart.find(c => c.id === id);
+  if(c && f) c.quantity = Math.max(1, Math.min(Number(f.quantity), Number(value) || 1));
+  save();
+  renderCart();
+}
+
+function removeCart(id){
+  cart = cart.filter(c => c.id !== id);
+  delete cartItemStates[id];
+  save();
+  renderCart();
+  renderCartCount();
+}
+
+$("confirmReservation").onclick = async () => {
+  if (!cart.length) return;
+
+  const onChainItems = cart.filter(c => c.isOnChain && c.chainDonationId && cartItemStates[c.id] !== "reserved");
+  const localItems   = cart.filter(c => !c.isOnChain || !c.chainDonationId);
+
+  // ---- On-chain items: real BridgeKey blockchain transaction ----
+  if (onChainItems.length > 0) {
+    if (!currentAccount || !activeProvider) {
+      toast("Connect your BridgeKey wallet first to claim on-chain donations.");
+      return;
+    }
+    if (!await canUseTrustTrayContract()) return;
+
+    // Mark all on-chain items as pending
+    for (const c of onChainItems) cartItemStates[c.id] = "pending";
+    renderCart();
+
+    for (const c of onChainItems) {
+      try {
+        // Pre-flight check: read latest state from contract
+        const latestDonation = await trustTrayContract.getDonation(c.chainDonationId);
+        if (Number(latestDonation.status) !== 0) {
+          cartItemStates[c.id] = "failed";
+          toast(`Donation #${c.chainDonationId} is no longer available (already claimed or cancelled).`);
+          renderCart();
+          continue;
+        }
+        const now = BigInt(Math.floor(Date.now() / 1000));
+        if (BigInt(latestDonation.expiryTime) <= now || BigInt(latestDonation.pickupDeadline) <= now) {
+          cartItemStates[c.id] = "failed";
+          toast(`Donation #${c.chainDonationId} has expired or its pickup deadline has passed.`);
+          renderCart();
+          continue;
+        }
+
+        // Submit claimDonation() transaction — BridgeKey will prompt for approval
+        toast(`Confirm claim of donation #${c.chainDonationId} in BridgeKey…`);
+        const ok = await claimDonationOnChain(c.chainDonationId);
+
+        if (ok) {
+          // Post-confirmation: verify on-chain status changed to Claimed (1)
+          try {
+            const confirmed = await trustTrayContract.getDonation(c.chainDonationId);
+            if (Number(confirmed.status) === 1 &&
+                confirmed.claimedBy.toLowerCase() === currentAccount.toLowerCase()) {
+              cartItemStates[c.id] = "reserved";
+              toast(`✅ Donation #${c.chainDonationId} reserved on-chain. Your address is the claimant.`);
+            } else {
+              cartItemStates[c.id] = "reserved";   // tx succeeded — treat as reserved
+              toast(`✅ Donation #${c.chainDonationId} transaction confirmed.`);
+            }
+          } catch {
+            cartItemStates[c.id] = "reserved";   // tx succeeded — trust the receipt
+          }
+        } else {
+          cartItemStates[c.id] = "failed";
+        }
+      } catch (err) {
+        cartItemStates[c.id] = "failed";
+        console.error(`Cart claim error for #${c.chainDonationId}:`, err);
+      }
+      renderCart();
+    }
+
+    renderCartCount();
+    renderFoods();
+    if (localItems.length === 0) return;
+  }
+
+  // ---- Local / demo items ----
+  if (localItems.length > 0) {
+    for (const c of localItems) {
+      let f = foods.find(food => food.id === c.id);
+      if (!f) continue;
+      f.quantity = Number(f.quantity) - Number(c.quantity);
+      if (f.quantity <= 0) f.status = "Claimed";
+      records.unshift({
+        id: f.id,
+        food: f.name,
+        event: "DonationClaimed",
+        time: new Date().toISOString(),
+        status: "Local demo record"
+      });
+    }
+    cart = cart.filter(c => c.isOnChain && c.chainDonationId);
+    save();
+    renderFoods();
+    renderCart();
+    renderCartCount();
+    renderBlockchain();
+    if (onChainItems.length === 0) {
+      toast("Demo reservations confirmed. Add real on-chain food donations to trigger a real blockchain transaction.");
+    }
+  }
+};
+
+/* ==========================================================================
+   9. SHARE SURPLUS FOOD (SMART CONTRACT PUBLISH)
+   ========================================================================== */
+$("donationForm").onsubmit = async (e) => {
+  e.preventDefault();
+  if (donationSubmissionInProgress) return;
+  donationSubmissionInProgress = true;
+  const submitButton = $("btnSubmitDonation");
+  submitButton.disabled = true;
+  submitButton.textContent = "Validating donation...";
+  let d = Object.fromEntries(new FormData(e.target).entries());
+
+  const deadlineDate = new Date(d.deadline);
+  const expiryDate = new Date(d.expiryTime);
+  const now = new Date();
+  const qty = Number(d.quantity);
+  const foodName = String(d.name || "").trim();
+  const location = String(d.location || "").trim();
+  const donorOrg = String(d.donor || "").trim();
+
+  if (!foodName || !location || !donorOrg || !Number.isSafeInteger(qty) || qty <= 0) {
+    toast("Enter a food name, positive whole-number quantity, pickup location, and donor name.");
+    donationSubmissionInProgress = false;
+    submitButton.disabled = false;
+    submitButton.textContent = "＋ Publish Food Donation";
+    return;
+  }
+  if (!Number.isFinite(deadlineDate.getTime()) || deadlineDate <= now) {
+    toast("Pickup deadline must be a valid future date and time.");
+    donationSubmissionInProgress = false;
+    submitButton.disabled = false;
+    submitButton.textContent = "＋ Publish Food Donation";
+    return;
+  }
+  if (!Number.isFinite(expiryDate.getTime()) || expiryDate <= now || expiryDate < deadlineDate) {
+    toast("Food expiry must be a valid future date and time, no earlier than the pickup deadline.");
+    donationSubmissionInProgress = false;
+    submitButton.disabled = false;
+    submitButton.textContent = "＋ Publish Food Donation";
+    return;
+  }
+
+  const pickupDeadlineSec = Math.floor(deadlineDate.getTime() / 1000);
+  const expiryTimeSec = Math.floor(expiryDate.getTime() / 1000);
+  const description = `${d.category} · ${d.diet} · ${d.notes || "Fresh surplus food"}`.trim();
+
+  // If BridgeKey is connected, submit on-chain through real wallet signer
+  if (currentAccount && activeProvider) {
+    if (!await canUseTrustTrayContract()) {
+      donationSubmissionInProgress = false;
+      submitButton.disabled = false;
+      submitButton.textContent = "＋ Publish Food Donation";
+      return;
+    }
+    let transactionTrackingStarted = false;
+    let transactionBroadcast = false;
+    let transactionOutcome = "unknown";
+    try {
+      toast("Prompting BridgeKey extension to sign createDonation()...");
+      submitButton.textContent = "Submitting to Blockchain...";
+
+      const signer = await getConnectedSigner();
+      const contractWithSigner = trustTrayContract.connect(signer);
+
+      beginBlockchainConfirmation();
+      transactionTrackingStarted = true;
+      const tx = await contractWithSigner.createDonation(
+        foodName,
+        description,
+        qty,
+        location,
+        expiryTimeSec,
+        pickupDeadlineSec
+      );
+      transactionBroadcast = true;
+      toast(`Tx broadcasted: ${shortAddress(tx.hash)}. Waiting for block confirmation...`);
+      const receipt = await tx.wait();
+      if (!receipt) {
+        throw new Error("The transaction receipt could not be read.");
+      }
+      if (Number(receipt.status) !== 1) {
+        transactionOutcome = "failed";
+        throw new Error("The transaction was mined but did not succeed.");
+      }
+      transactionOutcome = "success";
+      const createdDonationId = getCreatedDonationId(receipt);
+      recordConfirmedTransaction(
+        createdDonationId || "Unknown ID",
+        foodName,
+        "Donation created",
+        receipt.hash
+      );
+
+      e.target.reset();
+      const refreshed = await syncOnChainDonations();
+      const donationLabel = createdDonationId ? `Donation #${createdDonationId}` : "Donation";
+      toast(refreshed
+        ? `${donationLabel} confirmed on MST Testnet. Transaction: ${shortAddress(receipt.hash)}`
+        : `${donationLabel} transaction confirmed (${shortAddress(receipt.hash)}), but on-chain records could not be refreshed.`);
+      if (refreshed) page("donations");
+      return;
+
+    } catch (err) {
+      if (transactionBroadcast) transactionOutcome = getConfirmedFailureOutcome(err);
+      console.error("createDonation error:", err);
+      toast(err.code === 4001
+        ? "Donation request rejected in BridgeKey. No donation was confirmed."
+        : `Donation transaction failed: ${err.reason || err.message || "unknown error"}`);
+    } finally {
+      if (transactionBroadcast) {
+        finishBlockchainConfirmation("Donation", transactionOutcome);
+      } else if (transactionTrackingStarted) {
+        cancelBlockchainConfirmation();
+      }
+      donationSubmissionInProgress = false;
+      submitButton.disabled = false;
+      submitButton.textContent = "＋ Publish Food Donation";
+    }
+    return;
+  }
+
+  // Wallet not connected — require BridgeKey instead of silently saving locally
+  toast("Connect your BridgeKey wallet first to publish a food donation on-chain.");
+  donationSubmissionInProgress = false;
+  submitButton.disabled = false;
+  submitButton.textContent = "＋ Publish Food Donation";
+  // Bring up the wallet connect flow so the user can connect
+  handleWalletButtonClick();
+};
+
+/* ==========================================================================
+   10. MY DONATIONS (ACTIONS & DUAL CONFIRMATION)
+   ========================================================================== */
+function statusClass(s){
+  return String(s || "Available").toLowerCase().replace(/[^a-z]/g,"");
+}
+
+function renderDonations(){
+  let available = donations.filter(d => d.status === "Available").length;
+  let completed = donations.filter(d => d.status === "Completed" || d.status === "Picked Up").length;
+
+  $("donationStats").innerHTML = [
+    [donations.length, "Total donations"],
+    [available, "Available"],
+    [completed, "Completed pickups"]
+  ].map(([n,t]) => `<div class="mini-stat"><strong>${n}</strong><span>${t}</span></div>`).join("");
+
+  $("donationsTable").innerHTML = donations.map(d => {
+    let actionButtons = "";
+    if (d.isOnChain) {
+      const pending = activeDonationTransactions.has(String(d.chainDonationId));
+      const isDonor = currentAccount && d.donorAddress &&
+        d.donorAddress.toLowerCase() === currentAccount.toLowerCase();
+      if (d.status === "Available") {
+        actionButtons = isDonor
+          ? `<button class="btn btn-sm btn-danger" ${pending ? "disabled" : ""} onclick="cancelDonationOnChain(${d.chainDonationId})">${pending ? "Pending..." : "Cancel"}</button>`
+          : `<span class="note">Only the donor can cancel</span>`;
+      } else if (d.status === "Claimed") {
+        const isClaimant = currentAccount && d.claimedBy && d.claimedBy.toLowerCase() === currentAccount.toLowerCase();
+
+        const alreadyConfirmed = (isDonor && d.donorConfirmed) || (isClaimant && d.claimantConfirmed);
+        const confirmLabel = isDonor
+          ? "Confirm Handover (Donor)"
+          : "Confirm Receipt (Claimant)";
+        actionButtons = isDonor || isClaimant
+          ? alreadyConfirmed
+            ? `<span class="note">Your confirmation is recorded</span>`
+            : `<button class="btn btn-sm primary" ${pending ? "disabled" : ""} onclick="confirmPickupOnChain(${d.chainDonationId})">${pending ? "Pending..." : confirmLabel}</button>`
+          : `<span class="note">Only donor and claimant can confirm</span>`;
+      } else {
+        actionButtons = `<span class="note">No actions pending</span>`;
+      }
+    } else {
+      actionButtons = `<span class="note">Local demo</span>`;
+    }
+
+    return `
+    <tr>
+      <td>${esc(d.name)}<br><span class="note">${esc(d.id)}</span> ${d.isOnChain ? '<span class="status onchain-tag" style="font-size:9px">⛓ On-Chain</span>' : ''}</td>
+      <td>${esc(d.quantity)} ${esc(d.unit || "portions")}</td>
+      <td>${esc(d.location)}</td>
+      <td>${esc(date(d.deadline))}</td>
+      <td><span class="status ${statusClass(d.status)}">${esc(d.status || "Available")}</span></td>
+      <td>${actionButtons}</td>
+    </tr>
+  `;
+  }).join("");
+
+  $("donationsEmpty").classList.toggle("hidden", donations.length > 0);
+}
+
+/* ==========================================================================
+   11. BLOCKCHAIN RECORDS & ON-CHAIN LOOKUP
+   ========================================================================== */
+function renderBlockchain(){
+  let q = ($("verifyInput").value || "").trim().toLowerCase();
+  let list = onChainDonations.filter(item =>
+    !q || String(item.chainDonationId).includes(q) || item.name.toLowerCase().includes(q)
+  );
+
+  $("chainStats").innerHTML = [
+    [onChainDonations.length, "On-chain donations"],
+    [onChainDonations.filter(item => item.status === "Completed").length, "Completed donations"],
+    [currentChainId === MST_CHAIN_ID_DEC ? "MST Testnet" : (Number.isSafeInteger(currentChainId) ? `Chain ${currentChainId}` : "Not connected"), "Network status"]
+  ].map(([n,t]) => `<div class="mini-stat"><strong>${n}</strong><span>${t}</span></div>`).join("");
+
+  $("chainTable").innerHTML = list.map(item => `
+    <tr>
+      <td>${esc(item.chainDonationId)}</td>
+      <td>${esc(item.name)}</td>
+      <td>${esc(item.quantity)} ${esc(item.unit)}</td>
+      <td>${esc(item.location)}</td>
+      <td><span class="status ${statusClass(item.status)}">${esc(item.status)}</span></td>
+      <td><a href="${MST_EXPLORER_URL}/address/${contractAddress}" target="_blank" rel="noopener noreferrer" style="color:var(--green);font-weight:700">MST contract ↗</a></td>
+    </tr>
+  `).join("");
+
+  const confirmedTransactions = records.filter(record => record.isOnChain && record.txHash);
+  $("chainTransactionTable").innerHTML = confirmedTransactions.map(record => {
+    const txHash = String(record.txHash);
+    const txLink = /^0x[0-9a-f]{64}$/i.test(txHash)
+      ? `<a href="${MST_EXPLORER_URL}/tx/${encodeURIComponent(txHash)}" target="_blank" rel="noopener noreferrer">${esc(txHash)}</a>`
+      : esc(txHash);
+    return `<tr>
+      <td>${esc(record.chainDonationId)}</td>
+      <td>${esc(record.event)}</td>
+      <td>${esc(record.status)}</td>
+      <td style="word-break:break-all">${txLink}</td>
+    </tr>`;
+  }).join("");
+  $("chainTransactionsEmpty").classList.toggle("hidden", confirmedTransactions.length > 0);
+
+  $("chainEmpty").textContent = list.length
+    ? ""
+    : onChainDonations.length
+      ? "No on-chain donations match this search."
+      : `No on-chain records are available. ${contractReadinessMessage()}`;
+  $("chainEmpty").classList.toggle("hidden", list.length > 0);
+}
+
+// On-Chain Lookup function using getDonation(id)
+$("verifyButton").onclick = async () => {
+  const query = ($("verifyInput").value || "").trim();
+  const resultBox = $("onChainLookupResult");
+
+  if (!query) {
+    renderBlockchain();
+    return;
+  }
+
+  const numericId = /^\d+$/.test(query) ? Number(query) : NaN;
+  if (numericId && trustTrayContract) {
+    try {
+      toast(`Looking up Donation #${numericId} from TrustTray.sol...`);
+      const nextId = BigInt(await trustTrayContract.nextDonationId());
+      if (BigInt(numericId) >= nextId) {
+        throw new Error(`Donation #${numericId} does not exist.`);
+      }
+      const d = await trustTrayContract.donations(numericId);
+      const expiryTime = new Date(Number(d.expiryTime) * 1000);
+      const pickupDeadline = new Date(Number(d.pickupDeadline) * 1000);
+
+      const statusName = ON_CHAIN_STATUS_NAMES[Number(d.status)] || "Unknown";
+      resultBox.classList.remove("hidden");
+      resultBox.innerHTML = `
+        <h3 style="margin:0 0 10px;font-size:16px;color:#175f3d">⛓ On-Chain Struct Record: Donation #${numericId}</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;font-size:12px">
+          <div><b>Food:</b> ${esc(d.foodName)}</div>
+          <div><b>Description:</b> ${esc(d.description)}</div>
+          <div><b>Quantity:</b> ${d.quantity.toString()} portions</div>
+          <div><b>Status:</b> <span class="status ${statusClass(statusName)}">${statusName}</span></div>
+          <div><b>Donor Address:</b> ${shortAddress(d.donor)}</div>
+          <div><b>Claimant Address:</b> ${d.claimedBy === "0x0000000000000000000000000000000000000000" ? "None (Available)" : shortAddress(d.claimedBy)}</div>
+          <div><b>Pickup Location:</b> ${esc(d.pickupLocation)}</div>
+          <div><b>Pickup Deadline:</b> ${pickupDeadline.toLocaleString()}</div>
+          <div><b>Food Expiry:</b> ${expiryTime.toLocaleString()}</div>
+          <div><b>Dual Confirmation:</b> Donor: ${d.donorConfirmed ? "✔ Confirmed" : "⏳ Pending"} | Recipient: ${d.claimantConfirmed ? "✔ Confirmed" : "⏳ Pending"}</div>
+        </div>
+      `;
+      toast(`Found Donation #${numericId} on MST Blockchain!`);
+    } catch (err) {
+      console.error("On-chain lookup failed:", err);
+      resultBox.classList.remove("hidden");
+      resultBox.innerHTML = `<p style="color:#b91c1c;margin:0">Could not read Donation #${numericId}: ${esc(err.message || "unknown contract or RPC error")}</p>`;
+    }
+  } else if (numericId) {
+    resultBox.classList.remove("hidden");
+    resultBox.textContent = `On-chain lookup is unavailable: ${contractReadinessMessage()}`;
+  } else {
+    resultBox.classList.add("hidden");
+  }
+
+  renderBlockchain();
+};
+
+$("verifyInput").addEventListener("input", () => {
+  if (!$("verifyInput").value.trim()) {
+    $("onChainLookupResult").classList.add("hidden");
+  }
+  renderBlockchain();
+});
+
+/* ==========================================================================
+   12. INITIALIZATION
+   ========================================================================== */
+async function init(){
+  $("contractAddressInput").value = contractAddress;
+  initializeBridgeKeySession();
+  await loadTrustTrayAbi();
+  await verifyContractDeployment();
+
+  renderFoods();
+  renderCartCount();
+  renderDonations();
+  renderCart();
+  renderBlockchain();
+}
+
+init();
+</script>
+</body>
+</html>
